@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11) # FetchContent is available in 3.11+
-project(example)
+project(game)
 
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -24,8 +24,12 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
 endif()
 
 # Our Project
+include_directories(${workspaceFolder}/build/_deps/raylib-build/raylib/include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+file(GLOB SOURCES "${CMAKE_SOURCE_DIR}/src/*.c")
+add_executable(${PROJECT_NAME} main.c)
+target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
 
-add_executable(${PROJECT_NAME} core_basic_window.c)
 #set(raylib_VERBOSE 1)
 target_link_libraries(${PROJECT_NAME} raylib)
 
@@ -41,3 +45,5 @@ if (APPLE)
     target_link_libraries(${PROJECT_NAME} "-framework Cocoa")
     target_link_libraries(${PROJECT_NAME} "-framework OpenGL")
 endif()
+
+set_target_properties(game PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})

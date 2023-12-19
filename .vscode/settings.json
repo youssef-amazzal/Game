@@ -1,0 +1,13 @@
+{
+    "editor.tokenColorCustomizations": {
+        "textMateRules": []
+    },
+    "files.associations": {
+        "raylib.h": "c",
+        "entity.h": "c",
+        "cstdlib": "c",
+        "numbers": "c",
+        "*.m": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
+}
