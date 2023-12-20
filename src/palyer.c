@@ -4,6 +4,7 @@
 #include "player.h"
 #include "entity.h"
 #include "utils.h"
+#include "dev.h"
 
 
 static int isMoving();
@@ -19,7 +20,7 @@ Player *GetPlayer()
     if (player == NULL)
     {
         Texture2D *spriteSheet = malloc(sizeof(Texture2D));
-        *spriteSheet = LoadTexture("sprite.png");
+        *spriteSheet = LoadTexture(ASSET_PATH("players.png"));
         Rectangle frameTexture = {0, 24, 16, 24};
         Rectangle destFrame = {0, 0, frameTexture.width * 3, frameTexture.height * 3};
         Vector2 origin = {frameTexture.width / 2, frameTexture.height / 2};

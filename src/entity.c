@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define MAX_ENTITIES 100
+#define MAX_ENTITIES 1000
 
 static Entity *entities[MAX_ENTITIES];
 static int entityCount = 0;

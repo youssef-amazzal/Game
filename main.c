@@ -1,10 +1,11 @@
+#include <stdio.h>
 #include "raylib.h"
 #include "player.h"
 #include "entity.h"
-#include <stdio.h>
+#include "environment/env.h"
 
 int screenWidth = 800;
-int screenHeight = 450;
+int screenHeight = 480;
 
 int getIndex();
 
@@ -17,15 +18,14 @@ int main()
 
     Player *player = GetPlayer(); //initialize player
 
+    
     while (!WindowShouldClose())
     {
         UpdateEntities();
-
         BeginDrawing();
             ClearBackground(WHITE);
             DrawEntities();
         EndDrawing();
-
     }
 
     ClearEntities();
