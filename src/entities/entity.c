@@ -1,5 +1,5 @@
 #include "entity.h"
-#include "dev.h"
+#include "assets.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -12,17 +12,16 @@ static void Animate(Entity *e);
 static void Render(Entity *e);
 static bool IsMoving(Entity *e);
 
-
-Entity *CreateEntity()
+Entity *CreateEntity() 
 {
     Entity *e = malloc(sizeof(Entity));
     e->id = lastEntityID++;
     e->child = NULL;
     
     e->spriteSheet = NULL;
-    e->frameTexture = (Rectangle){0, 0, TileSize, TileSize};
+    e->frameTexture = (Rectangle){0, 0, TILE_SIZE, TILE_SIZE};
     
-    e->destFrame = (Rectangle){0, 0, TileSize * SCALING_FACTOR, TileSize * SCALING_FACTOR};
+    e->destFrame = (Rectangle){0, 0, TILE_SIZE * SCALING_FACTOR, TILE_SIZE * SCALING_FACTOR};
     e->origin = (Vector2){0, 0};
     e->velocity = (Vector2){0, 0};
     e->angle = 0;
@@ -39,7 +38,7 @@ Entity *CreateEntity()
 
 /************************
  *                      *
- * Private Core Funcs   *
+ * Core Funcs           *
  *                      *
  ************************/ 
 
@@ -48,7 +47,7 @@ Entity *CreateEntity()
 // and implement it in children. that way we can avoid
 // checking if the function is NULL and normally it will
 // be optimized out by the compiler
-static void Update(Entity *e) {} 
+static void Update(Entity *e) {}
 
 static void Animate(Entity *e){}
 
@@ -66,7 +65,6 @@ static void Free(Entity *e)
 {
     int id = e->id;
     
-    UnloadTexture(*(e->spriteSheet));
     free(e);
     
     ENTITY_RECORD[id] = NULL;
@@ -101,3 +99,9 @@ void FreeAll()
         }
     }
 }
+
+/************************
+ *                      *
+ * Helper Funcs         *
+ *                      *
+ ************************/

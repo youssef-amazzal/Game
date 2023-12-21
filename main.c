@@ -2,24 +2,45 @@
 #include "raylib.h"
 #include "player.h"
 #include "entity.h"
-#include "environment/env.h"
+#include "assets.h"
+#include "floor.h"
+#include "wall.h"
+#include "env.h"
+#include "decor.h"
 
 int screenWidth = 960;
 int screenHeight = 480;
 
-int getIndex();
+void initGame();
+void startGame();
+void exitGame();
 
 int main()
 {
-    int posX = 0;
-    int posY = 0;
+    initGame();
+
+    startGame();
+
+    exitGame();
+    
+    return 0;
+}
+
+void initGame() {
     InitWindow(screenWidth, screenHeight, "Snoopy Game");
     SetTargetFPS(120);
-
     
+    LoadTextures();
+    LoadLevel(1);
+
+    InitFloors();
+    InitWalls();
+    InitDecors();
     Player *player = GetSingletonPlayer(); //initialize player
 
-    
+}
+
+void startGame() {
     while (!WindowShouldClose())
     {
         BeginDrawing();
@@ -27,11 +48,13 @@ int main()
             StartAll();
         EndDrawing();
     }
-
-    FreeAll();
-    
-
-    CloseWindow(); // Close window and OpenGL context
-    return 0;
 }
+
+void exitGame() {
+    FreeAll();
+    UnloadCurrentLevel();
+    UnloadTextures();
+    CloseWindow();
+}
+    
 

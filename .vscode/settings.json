@@ -59,7 +59,15 @@
         "cinttypes": "c",
         "cstdbool": "c",
         "typeinfo": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "update.h": "c",
+        "render.h": "c",
+        "env.h": "c",
+        "player.h": "c",
+        "assets.h": "c",
+        "math.h": "c",
+        "stddef.h": "c",
+        "string.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "hidefiles.configurationType": "local",
@@ -72,12 +80,10 @@
                 "hidden": [
                     ".vscode/",
                     "build/",
-                    "README.md"
-                ],
-                "peek": [
-                    ".vscode/",
+                    "README.md",
                     "build/"
-                ]
+                ],
+                "peek": []
             },
             {
                 "name": "Strict",
@@ -94,6 +100,8 @@
         "**/.hg": true,
         "**/CVS": true,
         "**/.DS_Store": true,
+        ".vscode/": true,
+        "build/": true,
         "README.md": true
     },
     "hidefiles.selectedProfile": "Default"
