@@ -6,4 +6,4 @@ typedef struct Player
     Entity *entity;
 } Player;
 
-Player *GetPlayer();
+Player *GetSingletonPlayer();

@@ -4,7 +4,7 @@
 #include "entity.h"
 #include "environment/env.h"
 
-int screenWidth = 800;
+int screenWidth = 960;
 int screenHeight = 480;
 
 int getIndex();
@@ -16,19 +16,19 @@ int main()
     InitWindow(screenWidth, screenHeight, "Snoopy Game");
     SetTargetFPS(120);
 
-    Player *player = GetPlayer(); //initialize player
+    
+    Player *player = GetSingletonPlayer(); //initialize player
 
     
     while (!WindowShouldClose())
     {
-        UpdateEntities();
         BeginDrawing();
-            ClearBackground(WHITE);
-            DrawEntities();
+            ClearBackground(BLACK);
+            StartAll();
         EndDrawing();
     }
 
-    ClearEntities();
+    FreeAll();
     
 
     CloseWindow(); // Close window and OpenGL context

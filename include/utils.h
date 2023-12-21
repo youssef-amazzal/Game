@@ -1,6 +1,6 @@
 #pragma once
 
-enum DIRECTION_INDEX
+typedef enum DIRECTION_INDEX
 {    
     UP_INDEX          = 0,
     UP_RIGHT_INDEX    = 1,
@@ -12,6 +12,6 @@ enum DIRECTION_INDEX
     UP_LEFT_INDEX     = 7,
 
     DEFAULT_INDEX     = DOWN_INDEX
-};
+} DIRECTION_INDEX ;
 
-float GetAngle(int direction);
+float GetAngle(DIRECTION_INDEX direction);

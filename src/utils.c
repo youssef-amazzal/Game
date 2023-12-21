@@ -2,7 +2,7 @@
 #include "raylib.h"
 #include <stdio.h>
 
-float GetAngle(int direction) {
+float GetAngle(DIRECTION_INDEX direction) {
     switch (direction) {
         case RIGHT_INDEX:
             return 0;
@@ -29,3 +29,4 @@ float GetAngle(int direction) {
             return 7 * PI / 4;
     };
 }
+
