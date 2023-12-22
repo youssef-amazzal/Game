@@ -1,5 +1,6 @@
 #pragma once
 #include "raylib.h"
+#include "game.h"
 
 typedef struct Entity
 {
@@ -17,23 +18,25 @@ typedef struct Entity
     float angle;
     Vector2 origin;
 
-    Rectangle collisionRect;
+    Collision collision;
     
     void (*Update)(struct Entity *e); // used normally to update the position
     void (*Render)(struct Entity *e);
     void (*Animate)();
     void (*Free)(struct Entity *e); // remember this should be implemented in the child
+    
     bool (*IsMoving)();
+    void (*SetDestination)(struct Entity *e, float x, float y);
+
 } Entity;
 
-typedef Rectangle StaticCollisionRect;
 
-// a lazy way to avoid JSON parsing
 typedef struct AssetsData {
     int tileTypeId; 
-    StaticCollisionRect collisionRect;
+    Collision collision;
     int zIndex;
 } AssetsData;
+
 
 #define MAX_ENTITIES 400
 extern Entity *ENTITY_RECORD[];

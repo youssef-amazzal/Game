@@ -12,6 +12,7 @@ static void Render(Entity *e);
 static bool IsMoving(Entity *e);
 static void Free(Entity *e);
 static void SortRenderOrder();
+static void SetDestination(Entity *e, float x, float y);
 
 Entity *CreateEntity() 
 {
@@ -32,7 +33,9 @@ Entity *CreateEntity()
     e->Update = Update;
     e->Animate = Animate;
     e->Render = Render;
+
     e->IsMoving = IsMoving;
+    e->SetDestination = SetDestination;
     
     ENTITY_RECORD[e->id] = e;
     return e;
@@ -55,10 +58,10 @@ static void Animate(Entity *e){}
 
 static void Render(Entity *e)
 {
-    static bool showCollisionRect = false;
+    static bool showcollision = false;
     DrawTexturePro(*(e->spriteSheet), e->frameTexture, e->destFrame, e->origin, 0, WHITE);
-    if (showCollisionRect) DrawRectangleLinesEx(e->collisionRect, 2, RED);
-    if (IsKeyDown(KEY_SPACE)) showCollisionRect = true; else showCollisionRect = false;
+    if (showcollision) DrawRectangleLinesEx(e->collision.area, 2, e->collision.color);
+    if (IsKeyDown(KEY_SPACE)) showcollision = true; else showcollision = false;
 }
 
 static bool IsMoving(Entity *e)
@@ -141,3 +144,5 @@ static void SortRenderOrder()
         }
     }
 }
+
+static void SetDestination(Entity *e, float x, float y) {}

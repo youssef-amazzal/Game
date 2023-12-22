@@ -7,27 +7,34 @@
 const AssetsData COLLISION_DATA[] = {
     {
         .tileTypeId = D_BOX_TOP, 
-        .collisionRect = {
-            0,
-            0,
-            0,
-            0,
+        .collision = {
+            .area = {
+                0,
+                TILE_SIZE - TILE_SIZE / 2.5,
+                TILE_SIZE,
+                TILE_SIZE / 2.5,
+            },
+            .color = RED,
         },
         .zIndex = 1
     },
     {
         .tileTypeId = D_BOX_BODY ,
-        .collisionRect = {
-            0,
-            0,
-            TILE_SIZE,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                0,
+                0,
+                TILE_SIZE,
+                TILE_SIZE,
+            },
+            .color = RED,
         }
     },
 };
 
 static Decor *GetDecor(DECORS type);
 static void Free(Entity *decorEnt);
+static void SetDestination(Entity *decorEnt, float x, float y);
 static DECORS IndexToType(int index);
 static DECORS_INDEX TypeToIndex(DECORS type);
 
@@ -48,16 +55,15 @@ void InitDecors()
                 if (layerArray[row][col] != -1) 
                 {
                     Decor *decor = GetDecor(layerArray[row][col]);
-                    decor->entity->destFrame.x = col * TILE_SIZE * SCALING_FACTOR;
-                    decor->entity->destFrame.y = row * TILE_SIZE * SCALING_FACTOR;
-
                     AssetsData assetsData = COLLISION_DATA[TypeToIndex(layerArray[row][col])];
-                    decor->entity->collisionRect.width = assetsData.collisionRect.width * SCALING_FACTOR;
-                    decor->entity->collisionRect.height = assetsData.collisionRect.height * SCALING_FACTOR;
-                    decor->entity->collisionRect.x = assetsData.collisionRect.x + decor->entity->destFrame.x;
-                    decor->entity->collisionRect.y = assetsData.collisionRect.y + + decor->entity->destFrame.y;
 
+                    decor->entity->collision.area.width = assetsData.collision.area.width * SCALING_FACTOR;
+                    decor->entity->collision.area.height = assetsData.collision.area.height * SCALING_FACTOR;
+                    decor->entity->collision.color = assetsData.collision.color;
+                    
                     decor->entity->zIndex = assetsData.zIndex;
+
+                    SetDestination(decor->entity, col * TILE_SIZE * SCALING_FACTOR, row * TILE_SIZE * SCALING_FACTOR);
                 }
             }
         }
@@ -78,6 +84,7 @@ static Decor *GetDecor(DECORS type)
     decor->entity->frameTexture = (Rectangle){TILE_SIZE * (decor->type % D_TILES_PER_ROW), TILE_SIZE * (decor->type / D_TILES_PER_ROW), TILE_SIZE, TILE_SIZE};
 
     decor->entity->Free = Free;
+    decor->entity->SetDestination = SetDestination;
 
     return decor;
 }
@@ -105,6 +112,19 @@ static void Free(Entity *decorEnt)
  * Helper Funcs         *
  *                      *
  ************************/ 
+
+static void SetDestination(Entity *decorEnt, float x, float y)
+{
+    Decor *decor = (Decor *)decorEnt->child;
+    AssetsData assetsData = COLLISION_DATA[TypeToIndex(decor->type)];
+
+    decorEnt->destFrame.x = x;
+    decorEnt->destFrame.y = y;
+
+    decor->entity->collision.area.x = assetsData.collision.area.x * SCALING_FACTOR + decor->entity->destFrame.x;
+    decor->entity->collision.area.y = assetsData.collision.area.y * SCALING_FACTOR + decor->entity->destFrame.y;
+}
+
 
 static DECORS IndexToType(int index) 
 {

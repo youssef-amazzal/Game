@@ -11,6 +11,8 @@
 static bool IsMoving();
 static void Update(Entity *playerEnt);
 static void Animate(Entity *playerEnt);
+static void Free(Entity *playerEnt);
+static void SetDestination(Entity *playerEnt, float x, float y);
 
 Player *GetSingletonPlayer()
 {
@@ -27,12 +29,14 @@ Player *GetSingletonPlayer()
         player->entity->frameTexture = (Rectangle){0, 24, 16, 24};
         
         player->entity->destFrame = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
-        player->entity->collisionRect = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
-        player->entity->origin = (Vector2){0, 0};
+        player->entity->collision.area = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
+        player->entity->collision.color = LIME;
         
         player->entity->IsMoving = IsMoving;
         player->entity->Update = Update;  
         player->entity->Animate = Animate;
+        player->entity->Free = Free;
+        player->entity->SetDestination = SetDestination;
 
         initialized = true;
     }
@@ -65,11 +69,10 @@ static void Update(Entity *playerEnt) {
 
     if (playerEnt->IsMoving())
     {
-        playerEnt->destFrame.x += playerEnt->velocity.x * cos(playerEnt->angle) * GetFrameTime();
-        playerEnt->destFrame.y += playerEnt->velocity.y * sin(playerEnt->angle) * GetFrameTime();
+        float x = playerEnt->destFrame.x + playerEnt->velocity.x * cos(playerEnt->angle) * GetFrameTime();
+        float y = playerEnt->destFrame.y + playerEnt->velocity.y * sin(playerEnt->angle) * GetFrameTime();
 
-        playerEnt->collisionRect.x = playerEnt->destFrame.x;
-        playerEnt->collisionRect.y = playerEnt->destFrame.y;
+        SetDestination(playerEnt, x, y);
     }
 }
 
@@ -126,3 +129,14 @@ static void Free(Entity *playerEnt)
  * Helper Funcs         *
  *                      *
  ************************/ 
+
+static void SetDestination(Entity *playerEnt, float x, float y)
+{
+    Player *player = (Player *)playerEnt->child;
+
+    playerEnt->destFrame.x = x;
+    playerEnt->destFrame.y = y;
+
+    player->entity->collision.area.x = playerEnt->destFrame.x;
+    player->entity->collision.area.y = playerEnt->destFrame.y;
+}

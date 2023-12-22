@@ -7,117 +7,154 @@
 static const AssetsData COLLISION_DATA[] = {
     {
         .tileTypeId = W_CEILING, 
-        .collisionRect = {
-            0,
-            0,
-            0, 
-            0
+        .collision = {
+            .area = {
+                0,
+                0,
+                0, 
+                0
+            },
+            .color = BLUE,
         },
         .zIndex = 1
     },
     {
         .tileTypeId = W_CORNER_TOP_LEFT,
-        .collisionRect = {
-            0,
-            0,
-            TILE_SIZE,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                0,
+                0,
+                TILE_SIZE,
+                TILE_SIZE,
+            },
+            .color = BLUE,
         }
     },
     {
         .tileTypeId = W_CORNER_TOP_RIGHT,
-        .collisionRect = {
-            0,
-            0,
-            TILE_SIZE,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                0,
+                0,
+                TILE_SIZE,
+                TILE_SIZE,
+            },
+            .color = BLUE,
         }
     },
     {
         .tileTypeId = W_CORNER_BOTTOM_LEFT,
-        .collisionRect = {
-            0,
-            0,
-            TILE_SIZE,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                0,
+                0,
+                TILE_SIZE / 4,
+                TILE_SIZE,
+            },
+            .color = BLUE,
         }
     },
     {
         .tileTypeId = W_CORNER_BOTTOM_RIGHT,
-        .collisionRect = {
-            0,
-            0,
-            TILE_SIZE,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                TILE_SIZE - TILE_SIZE / 3,
+                0,
+                TILE_SIZE / 3,
+                TILE_SIZE,
+            },
+            .color = BLUE,
         },
     },
     {
         .tileTypeId = W_SIDE_LEFT,
-        .collisionRect = {
-            TILE_SIZE - (TILE_SIZE / 4),
-            0,
-            TILE_SIZE / 4,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                0,
+                0,
+                TILE_SIZE / 4,
+                TILE_SIZE,
+            },
+            .color = BLUE,
         },
     },
     {
         .tileTypeId = W_SIDE_RIGHT,
-        .collisionRect = {
-            0,
-            0,
-            TILE_SIZE / 4,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                TILE_SIZE - TILE_SIZE / 3,
+                0,
+                TILE_SIZE / 3,
+                TILE_SIZE,
+            },
+            .color = BLUE,
         },
     },
     {
         .tileTypeId = W_SIDE_CENTER,
-        .collisionRect = {
-            0,
-            0,
-            TILE_SIZE,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                TILE_SIZE / 3,
+                0,
+                TILE_SIZE / 3,
+                TILE_SIZE,
+            },
+            .color = BLUE,
         },
     },
     {
         .tileTypeId = W_INTERIOR,
-        .collisionRect = {
-            0,
-            0,
-            TILE_SIZE,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                0,
+                0,
+                TILE_SIZE,
+                TILE_SIZE,
+            },
+            .color = BLUE,
         }
     },
     {
         .tileTypeId = W_EXTERIOR,
-        .collisionRect = {
-            0,
-            0,
-            TILE_SIZE,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                0,
+                0,
+                TILE_SIZE,
+                TILE_SIZE,
+            },
+            .color = BLUE,
         }
     },
     {
         .tileTypeId = W_T_TOP,
-        .collisionRect = {
-            0,
-            0,
-            TILE_SIZE,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                0,
+                0,
+                TILE_SIZE,
+                TILE_SIZE,
+            },
+            .color = BLUE,
         }
     },
     {
         .tileTypeId = W_T_BOTTOM,
-        .collisionRect = {
-            0 + (float) TILE_SIZE / 3,
-            0,
-            (float) TILE_SIZE / 3,
-            TILE_SIZE,
+        .collision = {
+            .area = {
+                0 + (float) TILE_SIZE / 3,
+                0,
+                (float) TILE_SIZE / 3,
+                TILE_SIZE,
+            },
+            .color = BLUE,
         }
     }
 };
 
 static Wall *GetWall(WALLS w_type);
 static void Free(Entity *wallEnt);
+static void SetDestination(Entity *wallEnt, float x, float y);
 static WALLS IndexToType(int index);
 static WALLS_INDEX TypeToIndex(WALLS type);
 
@@ -135,16 +172,16 @@ void InitWalls() {
             {
                 if (layerArray[row][col] != -1) {
                     Wall *wall = GetWall(layerArray[row][col]);
-                    wall->entity->destFrame.x = col * TILE_SIZE * SCALING_FACTOR;
-                    wall->entity->destFrame.y = row * TILE_SIZE * SCALING_FACTOR;
-
                     AssetsData assetsData = COLLISION_DATA[TypeToIndex(layerArray[row][col])];
-                    wall->entity->collisionRect.width = assetsData.collisionRect.width * SCALING_FACTOR;
-                    wall->entity->collisionRect.height = assetsData.collisionRect.height * SCALING_FACTOR;
-                    wall->entity->collisionRect.x = assetsData.collisionRect.x + wall->entity->destFrame.x;
-                    wall->entity->collisionRect.y = assetsData.collisionRect.y + wall->entity->destFrame.y;
+                    
+                    wall->entity->collision.area.width = assetsData.collision.area.width * SCALING_FACTOR;
+                    wall->entity->collision.area.height = assetsData.collision.area.height * SCALING_FACTOR;
+                    wall->entity->collision.color = assetsData.collision.color;
+                    
 
                     wall->entity->zIndex = assetsData.zIndex;
+
+                    SetDestination(wall->entity, col * TILE_SIZE * SCALING_FACTOR, row * TILE_SIZE * SCALING_FACTOR);
                 }
             }
         }
@@ -165,6 +202,7 @@ static Wall *GetWall(WALLS w_type)
     wall->entity->frameTexture = (Rectangle){TILE_SIZE * (wall->type % W_TILES_PER_ROW), TILE_SIZE * (wall->type / W_TILES_PER_ROW), TILE_SIZE, TILE_SIZE};
 
     wall->entity->Free = Free;
+    wall->entity->SetDestination = SetDestination;
 
     return wall;
 }
@@ -193,6 +231,22 @@ static void Free(Entity *wallEnt)
  *                      *
  ************************/ 
 
+static void SetDestination(Entity *wallEnt, float x, float y)
+{
+    Wall *wall = (Wall *)wallEnt->child;
+    AssetsData assetsData = COLLISION_DATA[TypeToIndex(wall->type)];
+
+    wallEnt->destFrame.x = x;
+    wallEnt->destFrame.y = y;
+    
+    float newCollisionX = assetsData.collision.area.x * SCALING_FACTOR + wallEnt->destFrame.x;
+    float newCollisionY = assetsData.collision.area.y * SCALING_FACTOR + wallEnt->destFrame.y;
+
+    wall->entity->collision.area.x = newCollisionX;
+    wall->entity->collision.area.y = newCollisionY;
+    
+}
+
 static WALLS IndexToType(int index) {
     switch (index)
     {
@@ -219,7 +273,7 @@ static WALLS IndexToType(int index) {
         case W_T_TOP_INDEX:
             return W_T_TOP;
         case W_T_BOTTOM_INDEX:
-            return W_T_BOTTOM;        
+            return W_T_BOTTOM;
     }
 }
 
