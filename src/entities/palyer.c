@@ -27,7 +27,8 @@ Player *GetSingletonPlayer()
         player->entity->frameTexture = (Rectangle){0, 24, 16, 24};
         
         player->entity->destFrame = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
-        player->entity->origin = (Vector2){8, 12};
+        player->entity->collisionRect = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
+        player->entity->origin = (Vector2){0, 0};
         
         player->entity->IsMoving = IsMoving;
         player->entity->Update = Update;  
@@ -66,6 +67,9 @@ static void Update(Entity *playerEnt) {
     {
         playerEnt->destFrame.x += playerEnt->velocity.x * cos(playerEnt->angle) * GetFrameTime();
         playerEnt->destFrame.y += playerEnt->velocity.y * sin(playerEnt->angle) * GetFrameTime();
+
+        playerEnt->collisionRect.x = playerEnt->destFrame.x;
+        playerEnt->collisionRect.y = playerEnt->destFrame.y;
     }
 }
 

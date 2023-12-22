@@ -21,6 +21,8 @@ Entity *CreateEntity()
     
     e->spriteSheet = NULL;
     e->frameTexture = (Rectangle){0, 0, TILE_SIZE, TILE_SIZE};
+
+    e->zIndex = 0;
     
     e->destFrame = (Rectangle){0, 0, TILE_SIZE * SCALING_FACTOR, TILE_SIZE * SCALING_FACTOR};
     e->origin = (Vector2){0, 0};
@@ -53,7 +55,10 @@ static void Animate(Entity *e){}
 
 static void Render(Entity *e)
 {
+    static bool showCollisionRect = false;
     DrawTexturePro(*(e->spriteSheet), e->frameTexture, e->destFrame, e->origin, 0, WHITE);
+    if (showCollisionRect) DrawRectangleLinesEx(e->collisionRect, 2, RED);
+    if (IsKeyDown(KEY_SPACE)) showCollisionRect = true; else showCollisionRect = false;
 }
 
 static bool IsMoving(Entity *e)
@@ -83,8 +88,15 @@ void StartAll() {
         {
             ENTITY_RECORD[i]->Update(ENTITY_RECORD[i]);
             ENTITY_RECORD[i]->Animate(ENTITY_RECORD[i]);
+        }
+    }
+    
+    SortRenderOrder();
 
-            SortRenderOrder();
+    for (int i = 0; i < lastEntityID; i++)
+    {
+        if (ENTITY_RECORD[i] != NULL)
+        {
             ENTITY_RECORD[i]->Render(ENTITY_RECORD[i]);
         }
     }
@@ -109,13 +121,23 @@ void FreeAll()
 
 static void SortRenderOrder()
 {
-    for (int i = 1; i < MAX_ENTITIES; i++)
+    for (int i = 0; i < lastEntityID; i++)
     {
-        Entity *key = ENTITY_RECORD[i];
-        if (key == NULL) continue;
-
-        int j = i - 1;
-        while (j >= 0 && ENTITY_RECORD[j]->destFrame.y > key->destFrame.y)
+        for (int j = 0; j < lastEntityID - i - 1; j++)
         {
-            ENTITY_RECORD[j + 1] = ENTITY_RECORD[j];
+            int z = ENTITY_RECORD[j]->zIndex;
+            int y = ENTITY_RECORD[j]->destFrame.y;
+            if (z > ENTITY_RECORD[j + 1]->zIndex || (z == ENTITY_RECORD[j + 1]->zIndex && y > ENTITY_RECORD[j + 1]->destFrame.y))
+            {
+                Entity *temp = ENTITY_RECORD[j];
+                ENTITY_RECORD[j] = ENTITY_RECORD[j + 1];
+                ENTITY_RECORD[j + 1] = temp;
+
+                ENTITY_RECORD[j]->id = j;
+                ENTITY_RECORD[j + 1]->id = j + 1;
+
+                // printf("swapped %d and %d\n", j, j + 1);
+            }
+        }
     }
+}

@@ -25,7 +25,8 @@ void InitFloors() {
 
             floor->entity->spriteSheet = floorSpriteSheet; // todo: i should change this if there is more floor types
             floor->entity->frameTexture = (Rectangle){TILE_SIZE * (floor->type % F_TILES_PER_ROW), TILE_SIZE * (floor->type / F_TILES_PER_ROW), TILE_SIZE, TILE_SIZE};
-            
+
+            floor->entity->zIndex = -1;
 
             floor->entity->Render = render;
             floor->entity->Free = Free;

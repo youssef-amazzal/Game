@@ -10,6 +10,8 @@ typedef struct Entity
     Texture2D *spriteSheet;
     Rectangle frameTexture;
 
+    int zIndex;
+
     Rectangle destFrame;
     Vector2 velocity;
     float angle;
@@ -24,13 +26,16 @@ typedef struct Entity
     bool (*IsMoving)();
 } Entity;
 
-// a lazy way to avoid JSON parsing
-typedef struct StaticData {
-    int tileTypeId;
-    Rectangle collisionRect;
-} StaticData;
+typedef Rectangle StaticCollisionRect;
 
-#define MAX_ENTITIES 1000
+// a lazy way to avoid JSON parsing
+typedef struct AssetsData {
+    int tileTypeId; 
+    StaticCollisionRect collisionRect;
+    int zIndex;
+} AssetsData;
+
+#define MAX_ENTITIES 400
 extern Entity *ENTITY_RECORD[];
 
 Entity *CreateEntity();

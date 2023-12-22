@@ -1,5 +1,6 @@
 #pragma once
 #include "raylib.h"
+#include "assets.h"
 #include "entity.h"
 
 #define DECORS_COUNT 2

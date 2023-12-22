@@ -4,6 +4,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+const AssetsData COLLISION_DATA[] = {
+    {
+        .tileTypeId = D_BOX_TOP, 
+        .collisionRect = {
+            0,
+            0,
+            0,
+            0,
+        },
+        .zIndex = 1
+    },
+    {
+        .tileTypeId = D_BOX_BODY ,
+        .collisionRect = {
+            0,
+            0,
+            TILE_SIZE,
+            TILE_SIZE,
+        }
+    },
+};
+
 static Decor *GetDecor(DECORS type);
 static void Free(Entity *decorEnt);
 static DECORS IndexToType(int index);
@@ -28,6 +50,14 @@ void InitDecors()
                     Decor *decor = GetDecor(layerArray[row][col]);
                     decor->entity->destFrame.x = col * TILE_SIZE * SCALING_FACTOR;
                     decor->entity->destFrame.y = row * TILE_SIZE * SCALING_FACTOR;
+
+                    AssetsData assetsData = COLLISION_DATA[TypeToIndex(layerArray[row][col])];
+                    decor->entity->collisionRect.width = assetsData.collisionRect.width * SCALING_FACTOR;
+                    decor->entity->collisionRect.height = assetsData.collisionRect.height * SCALING_FACTOR;
+                    decor->entity->collisionRect.x = assetsData.collisionRect.x + decor->entity->destFrame.x;
+                    decor->entity->collisionRect.y = assetsData.collisionRect.y + + decor->entity->destFrame.y;
+
+                    decor->entity->zIndex = assetsData.zIndex;
                 }
             }
         }

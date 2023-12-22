@@ -4,6 +4,117 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+static const AssetsData COLLISION_DATA[] = {
+    {
+        .tileTypeId = W_CEILING, 
+        .collisionRect = {
+            0,
+            0,
+            0, 
+            0
+        },
+        .zIndex = 1
+    },
+    {
+        .tileTypeId = W_CORNER_TOP_LEFT,
+        .collisionRect = {
+            0,
+            0,
+            TILE_SIZE,
+            TILE_SIZE,
+        }
+    },
+    {
+        .tileTypeId = W_CORNER_TOP_RIGHT,
+        .collisionRect = {
+            0,
+            0,
+            TILE_SIZE,
+            TILE_SIZE,
+        }
+    },
+    {
+        .tileTypeId = W_CORNER_BOTTOM_LEFT,
+        .collisionRect = {
+            0,
+            0,
+            TILE_SIZE,
+            TILE_SIZE,
+        }
+    },
+    {
+        .tileTypeId = W_CORNER_BOTTOM_RIGHT,
+        .collisionRect = {
+            0,
+            0,
+            TILE_SIZE,
+            TILE_SIZE,
+        },
+    },
+    {
+        .tileTypeId = W_SIDE_LEFT,
+        .collisionRect = {
+            TILE_SIZE - (TILE_SIZE / 4),
+            0,
+            TILE_SIZE / 4,
+            TILE_SIZE,
+        },
+    },
+    {
+        .tileTypeId = W_SIDE_RIGHT,
+        .collisionRect = {
+            0,
+            0,
+            TILE_SIZE / 4,
+            TILE_SIZE,
+        },
+    },
+    {
+        .tileTypeId = W_SIDE_CENTER,
+        .collisionRect = {
+            0,
+            0,
+            TILE_SIZE,
+            TILE_SIZE,
+        },
+    },
+    {
+        .tileTypeId = W_INTERIOR,
+        .collisionRect = {
+            0,
+            0,
+            TILE_SIZE,
+            TILE_SIZE,
+        }
+    },
+    {
+        .tileTypeId = W_EXTERIOR,
+        .collisionRect = {
+            0,
+            0,
+            TILE_SIZE,
+            TILE_SIZE,
+        }
+    },
+    {
+        .tileTypeId = W_T_TOP,
+        .collisionRect = {
+            0,
+            0,
+            TILE_SIZE,
+            TILE_SIZE,
+        }
+    },
+    {
+        .tileTypeId = W_T_BOTTOM,
+        .collisionRect = {
+            0 + (float) TILE_SIZE / 3,
+            0,
+            (float) TILE_SIZE / 3,
+            TILE_SIZE,
+        }
+    }
+};
 
 static Wall *GetWall(WALLS w_type);
 static void Free(Entity *wallEnt);
@@ -26,6 +137,14 @@ void InitWalls() {
                     Wall *wall = GetWall(layerArray[row][col]);
                     wall->entity->destFrame.x = col * TILE_SIZE * SCALING_FACTOR;
                     wall->entity->destFrame.y = row * TILE_SIZE * SCALING_FACTOR;
+
+                    AssetsData assetsData = COLLISION_DATA[TypeToIndex(layerArray[row][col])];
+                    wall->entity->collisionRect.width = assetsData.collisionRect.width * SCALING_FACTOR;
+                    wall->entity->collisionRect.height = assetsData.collisionRect.height * SCALING_FACTOR;
+                    wall->entity->collisionRect.x = assetsData.collisionRect.x + wall->entity->destFrame.x;
+                    wall->entity->collisionRect.y = assetsData.collisionRect.y + wall->entity->destFrame.y;
+
+                    wall->entity->zIndex = assetsData.zIndex;
                 }
             }
         }
