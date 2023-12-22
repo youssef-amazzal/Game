@@ -114,7 +114,6 @@ static void Free(Entity *playerEnt)
     free(player);
 
     ENTITY_RECORD[id] = NULL;
-    ENTITY_COUNT--;
     
 }
 

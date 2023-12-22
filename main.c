@@ -5,7 +5,6 @@
 #include "assets.h"
 #include "floor.h"
 #include "wall.h"
-#include "env.h"
 #include "decor.h"
 
 int screenWidth = 960;

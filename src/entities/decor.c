@@ -25,7 +25,7 @@ void InitDecors()
             {
                 if (layerArray[row][col] != -1) 
                 {
-                    Decor *decor = GetDecor(IndexToType(layerArray[row][col]));
+                    Decor *decor = GetDecor(layerArray[row][col]);
                     decor->entity->destFrame.x = col * TILE_SIZE * SCALING_FACTOR;
                     decor->entity->destFrame.y = row * TILE_SIZE * SCALING_FACTOR;
                 }
@@ -67,7 +67,6 @@ static void Free(Entity *decorEnt)
     free(decorEnt);
 
     ENTITY_RECORD[id] = NULL;
-    ENTITY_COUNT--;
 }
 
 

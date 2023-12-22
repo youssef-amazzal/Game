@@ -27,13 +27,11 @@ endif()
 include_directories(${workspaceFolder}/build/_deps/raylib-build/raylib/include)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/include/entities)
-include_directories(${CMAKE_SOURCE_DIR}/include/environment)
 include_directories(${CMAKE_SOURCE_DIR}/include/helpers)
 
 file(GLOB SOURCES 
   "${CMAKE_SOURCE_DIR}/src/*.c" 
   "${CMAKE_SOURCE_DIR}/src/entities/*.c"
-  "${CMAKE_SOURCE_DIR}/src/environment/*.c"
   "${CMAKE_SOURCE_DIR}/src/helpers/*.c"
 )
 add_executable(${PROJECT_NAME} main.c)

@@ -4,13 +4,14 @@
 #include <stdio.h>
 
 Entity *ENTITY_RECORD[MAX_ENTITIES];
-int ENTITY_COUNT = 0;
 static int lastEntityID = 0;
 
 static void Update(Entity *e);
 static void Animate(Entity *e);
 static void Render(Entity *e);
 static bool IsMoving(Entity *e);
+static void Free(Entity *e);
+static void SortRenderOrder();
 
 Entity *CreateEntity() 
 {
@@ -32,7 +33,6 @@ Entity *CreateEntity()
     e->IsMoving = IsMoving;
     
     ENTITY_RECORD[e->id] = e;
-    ENTITY_COUNT++;
     return e;
 }
 
@@ -68,7 +68,6 @@ static void Free(Entity *e)
     free(e);
     
     ENTITY_RECORD[id] = NULL;
-    ENTITY_COUNT--;
 }
 
 /************************
@@ -84,6 +83,8 @@ void StartAll() {
         {
             ENTITY_RECORD[i]->Update(ENTITY_RECORD[i]);
             ENTITY_RECORD[i]->Animate(ENTITY_RECORD[i]);
+
+            SortRenderOrder();
             ENTITY_RECORD[i]->Render(ENTITY_RECORD[i]);
         }
     }
@@ -105,3 +106,16 @@ void FreeAll()
  * Helper Funcs         *
  *                      *
  ************************/
+
+static void SortRenderOrder()
+{
+    for (int i = 1; i < MAX_ENTITIES; i++)
+    {
+        Entity *key = ENTITY_RECORD[i];
+        if (key == NULL) continue;
+
+        int j = i - 1;
+        while (j >= 0 && ENTITY_RECORD[j]->destFrame.y > key->destFrame.y)
+        {
+            ENTITY_RECORD[j + 1] = ENTITY_RECORD[j];
+    }

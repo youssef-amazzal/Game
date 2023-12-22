@@ -65,6 +65,8 @@ static void render(Entity *floorEnt)
             }
         }
     }
+    floorEnt->destFrame.x = 0;
+    floorEnt->destFrame.y = 0;
 }
 
 static void Free(Entity *floorEnt)
@@ -76,7 +78,6 @@ static void Free(Entity *floorEnt)
     free(floor);
 
     ENTITY_RECORD[id] = NULL;
-    ENTITY_COUNT--;
 }
 
 /************************

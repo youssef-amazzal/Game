@@ -4,9 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static Wall SingletonRecord[WALLS_COUNT];
 
-static void render(Entity *wallEnt);
+static Wall *GetWall(WALLS w_type);
 static void Free(Entity *wallEnt);
 static WALLS IndexToType(int index);
 static WALLS_INDEX TypeToIndex(WALLS type);
@@ -15,27 +14,40 @@ void InitWalls() {
     static bool initialized = false;
     if (!initialized)
     {
-        for (int i = 0; i < WALLS_COUNT; i++)
-        {
-            Wall *wall = &SingletonRecord[i];
-            wall->type = IndexToType(i);
+        int width = CURRENT_LEVEL->width;
+        int height = CURRENT_LEVEL->height;
 
-            wall->entity = CreateEntity();
-            wall->entity->child = &SingletonRecord[i];
+        int **layerArray = CURRENT_LEVEL->layers[LAYER_WALLS];
 
-            wall->entity->spriteSheet = wallSpriteSheet; // todo: i should change this if there is more wall types
-            wall->entity->frameTexture = (Rectangle){TILE_SIZE * (wall->type % W_TILES_PER_ROW), TILE_SIZE * (wall->type / W_TILES_PER_ROW), TILE_SIZE, TILE_SIZE};
-            
-            wall->entity->Render = render;
-            wall->entity->Free = Free;
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++)
+            {
+                if (layerArray[row][col] != -1) {
+                    Wall *wall = GetWall(layerArray[row][col]);
+                    wall->entity->destFrame.x = col * TILE_SIZE * SCALING_FACTOR;
+                    wall->entity->destFrame.y = row * TILE_SIZE * SCALING_FACTOR;
+                }
+            }
         }
+
         initialized = true;
     }
 }
 
-Wall *GetSigletonWall(WALLS w_type)
+static Wall *GetWall(WALLS w_type)
 {
-    return &SingletonRecord[TypeToIndex(w_type)];
+    Wall *wall = malloc(sizeof(Wall));
+    wall->type = w_type;
+
+    wall->entity = CreateEntity();
+    wall->entity->child = wall;
+
+    wall->entity->spriteSheet = wallSpriteSheet;
+    wall->entity->frameTexture = (Rectangle){TILE_SIZE * (wall->type % W_TILES_PER_ROW), TILE_SIZE * (wall->type / W_TILES_PER_ROW), TILE_SIZE, TILE_SIZE};
+
+    wall->entity->Free = Free;
+
+    return wall;
 }
 
 /************************
@@ -43,27 +55,6 @@ Wall *GetSigletonWall(WALLS w_type)
  * Core Funcs           *
  *                      *
  ************************/
-
-static void render(Entity *wallEnt)
-{
-    Wall *wall = (Wall *)wallEnt->child;
-
-    int width = CURRENT_LEVEL->width;
-    int height = CURRENT_LEVEL->height;
-
-    int **layerArray = CURRENT_LEVEL->layers[LAYER_WALLS];
-
-    for (int row = 0; row < height; row++) {
-        for (int col = 0; col < width; col++)
-        {
-            if (layerArray[row][col] == wall->type) {
-                wallEnt->destFrame.x = col * TILE_SIZE * SCALING_FACTOR;
-                wallEnt->destFrame.y = row * TILE_SIZE * SCALING_FACTOR;
-                DrawTexturePro(*wallEnt->spriteSheet, wallEnt->frameTexture, wallEnt->destFrame, (Vector2){0, 0}, 0, WHITE);
-            }
-        }
-    }
-}
 
 static void Free(Entity *wallEnt)
 {
@@ -74,7 +65,6 @@ static void Free(Entity *wallEnt)
     free(wallEnt);
 
     ENTITY_RECORD[id] = NULL;
-    ENTITY_COUNT--;
 }
 
 

@@ -5,6 +5,7 @@ typedef struct Entity
 {
     int id;
     void *child;
+    bool active;
 
     Texture2D *spriteSheet;
     Rectangle frameTexture;
@@ -13,6 +14,8 @@ typedef struct Entity
     Vector2 velocity;
     float angle;
     Vector2 origin;
+
+    Rectangle collisionRect;
     
     void (*Update)(struct Entity *e); // used normally to update the position
     void (*Render)(struct Entity *e);
@@ -21,9 +24,14 @@ typedef struct Entity
     bool (*IsMoving)();
 } Entity;
 
+// a lazy way to avoid JSON parsing
+typedef struct StaticData {
+    int tileTypeId;
+    Rectangle collisionRect;
+} StaticData;
+
 #define MAX_ENTITIES 1000
-extern Entity *ENTITY_RECORD[MAX_ENTITIES];
-extern int ENTITY_COUNT;
+extern Entity *ENTITY_RECORD[];
 
 Entity *CreateEntity();
 
