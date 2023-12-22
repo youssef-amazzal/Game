@@ -1,4 +1,4 @@
-#include "update.h"
+#include "game.h"
 #include "raylib.h"
 
 float DirectionToAngle(DIRECTIONS direction) {

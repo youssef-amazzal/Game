@@ -3,7 +3,7 @@
 #include <math.h>
 #include "player.h"
 #include "entity.h"
-#include "update.h"
+#include "game.h"
 #include "assets.h"
 
 #define PlayerSpeed 120

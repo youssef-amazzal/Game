@@ -15,3 +15,4 @@ typedef enum DIRECTIONS
 } DIRECTIONS ;
 
 float DirectionToAngle(DIRECTIONS direction);
+
