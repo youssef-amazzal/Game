@@ -59,6 +59,16 @@ static void Render(Entity *e)
     DrawTexturePro(*(e->spriteSheet), e->frameTexture, e->destFrame, e->origin, 0, WHITE);
     if (showcollision) {
         DrawRectangleLinesEx(e->collision.area, 1, e->collision.color);
+
+        // a workaround to show the collision below the current entity
+        for (int i = 0; i < e->id; i++) {
+            if (ENTITY_RECORD[i] != NULL) {
+                if (INTERSECTION_RECORD[i][e->id].isColliding) {
+                    DrawRectangleRec(INTERSECTION_RECORD[i][e->id].area, (Color){255, 180, 0, 100});
+                }
+            }
+        }
+
         for (int i = e->id + 1; i < LAST_ID; i++) {
             if (ENTITY_RECORD[i] != NULL) {
                 if (INTERSECTION_RECORD[e->id][i].isColliding) {

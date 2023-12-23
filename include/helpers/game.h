@@ -75,6 +75,6 @@ typedef struct Intersection {
 
 extern Intersection INTERSECTION_RECORD[MAX_ENTITIES][MAX_ENTITIES];
 
-void InitCollisions();
+void DetectCollisions();
 
 

@@ -19,7 +19,7 @@ void StartAll() {
     }
     
     SortRenderOrder();
-    InitCollisions();
+    DetectCollisions();
 
     for (int i = 0; i < LAST_ID; i++)
     {
@@ -111,7 +111,7 @@ void SortRenderOrder()
  ************************/
 Intersection INTERSECTION_RECORD[MAX_ENTITIES][MAX_ENTITIES];
 
-void InitCollisions()
+void DetectCollisions()
 {
    for (int i = 0; i < LAST_ID; i++)
     {
