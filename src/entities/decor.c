@@ -28,6 +28,8 @@ const TextureData TEXTURES_DATA[] = {
                 TILE_SIZE,
             },
             .color = RED,
+            .canBePushed = true,
+            .canBounce = true,
         },
         .isReactive = true,
     },
@@ -61,6 +63,13 @@ void InitDecors()
                     decor->entity->hitBox.area.width = textureData.hitBox.area.width * SCALING_FACTOR;
                     decor->entity->hitBox.area.height = textureData.hitBox.area.height * SCALING_FACTOR;
                     decor->entity->hitBox.color = textureData.hitBox.color;
+
+                    decor->entity->hitBox.canBlock = textureData.hitBox.canBlock;
+                    decor->entity->hitBox.canBePushed = textureData.hitBox.canBePushed;
+                    decor->entity->hitBox.canBeDestroyed = textureData.hitBox.canBeDestroyed;
+                    decor->entity->hitBox.canDestroy = textureData.hitBox.canDestroy;
+                    decor->entity->hitBox.canBeCollected = textureData.hitBox.canBeCollected;
+                    decor->entity->hitBox.canBounce = textureData.hitBox.canBounce;
 
                     decor->entity->isReactive = textureData.isReactive;                    
                     decor->entity->zIndex = textureData.zIndex;

@@ -8,7 +8,7 @@
 /************************
  * Game Cycle Funcs
  ************************/
-void StartAll() {
+void SartGameCycle() {
     for (int i = 0; i < LAST_ID; i++)
     {
         if (ENTITY_RECORD[i] != NULL)
@@ -25,8 +25,8 @@ void StartAll() {
     {
         if (ENTITY_RECORD[i] != NULL)
         {
-            ENTITY_RECORD[i]->React(ENTITY_RECORD[i]);
             ENTITY_RECORD[i]->Render(ENTITY_RECORD[i]);
+            ENTITY_RECORD[i]->React(ENTITY_RECORD[i]);
         }
     }
     
@@ -46,6 +46,34 @@ void StopGameCycle()
 /************************
  * Movement Funcs
  ************************/
+
+char *DirectionToString(DIRECTIONS direction) {
+    switch (direction) {
+        case RIGHT:
+            return "RIGHT";
+
+        case DOWN_RIGHT:
+            return "DOWN_RIGHT";
+
+        case DOWN:
+            return "DOWN";
+        
+        case DOWN_LEFT:
+            return "DOWN_LEFT";
+        
+        case LEFT:
+            return "LEFT";
+        
+        case UP_LEFT:
+            return "UP_LEFT";
+        
+        case UP:
+            return "UP";
+        
+        case UP_RIGHT:
+            return "UP_RIGHT";
+    };
+}
 float DirectionToAngle(DIRECTIONS direction) {
     switch (direction) {
         case RIGHT:
@@ -72,6 +100,39 @@ float DirectionToAngle(DIRECTIONS direction) {
         case UP_RIGHT:
             return 7 * PI / 4;
     };
+}
+DIRECTIONS AngleToDirection(float angle) {
+    if (angle >= 0 && angle < PI / 8) {
+        return RIGHT;
+    }
+
+    if (angle >= PI / 8 && angle < 3 * PI / 8) {
+        return DOWN_RIGHT;
+    }
+
+    if (angle >= 3 * PI / 8 && angle < 5 * PI / 8) {
+        return DOWN;
+    }
+
+    if (angle >= 5 * PI / 8 && angle < 7 * PI / 8) {
+        return DOWN_LEFT;
+    }
+
+    if (angle >= 7 * PI / 8 && angle < 9 * PI / 8) {
+        return LEFT;
+    }
+
+    if (angle >= 9 * PI / 8 && angle < 11 * PI / 8) {
+        return UP_LEFT;
+    }
+
+    if (angle >= 11 * PI / 8 && angle < 13 * PI / 8) {
+        return UP;
+    }
+
+    if (angle >= 13 * PI / 8 && angle < 15 * PI / 8) {
+        return UP_RIGHT;
+    }
 }
 
 Vector2 CalculateDestination(Vector2 position, Vector2 velocity, float angle) {
@@ -117,26 +178,24 @@ void DetectHitBoxs()
     {
         for (int j = i + 1; j < LAST_ID; j++)
         {
-            COLLISION_RECORD[i][j].isColliding = false;
+            Collision *collision = GetCollision(i, j);
+            collision->isColliding = false;
 
             if (ENTITY_RECORD[i] != NULL && ENTITY_RECORD[j] != NULL)
             {
-                if (CheckHitBoxRecs(ENTITY_RECORD[i]->hitBox.area, ENTITY_RECORD[j]->hitBox.area))
+                if (CheckCollisionRecs(ENTITY_RECORD[i]->hitBox.area, ENTITY_RECORD[j]->hitBox.area))
                 {
-                    Rectangle collision = GetHitBoxRec(ENTITY_RECORD[i]->hitBox.area, ENTITY_RECORD[j]->hitBox.area);
-                    COLLISION_RECORD[i][j].area = collision;
+                    collision->area = GetCollisionRec(ENTITY_RECORD[i]->hitBox.area, ENTITY_RECORD[j]->hitBox.area);
+                    collision->isColliding = true;
                 }
             }
         }
     }
 }
+Collision *GetCollision(int id1, int id2)
+{
+    int minId = id1 < id2 ? id1 : id2;
+    int maxId = id1 > id2 ? id1 : id2;
 
-// TODO: have a doubt whether I need to find a way to call those reactions only 
-//       for the first participant of the collision and skip the second one
-
-void PushReaction(Entity *pusher, Entity *pushed, void (*setDestination)(Entity *pushed, float x, float y)) {
-    if (pushed->collision.canBePushed) {
-        Vector2 dest = CalculateDestination((Vector2) {pushed->destFrame.x, pushed->destFrame.y}, pusher->velocity, pusher->angle);
-        setDestination(pushed, dest.x, dest.y);
-    }
+    return &COLLISION_RECORD[minId][maxId];
 }

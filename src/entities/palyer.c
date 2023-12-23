@@ -14,8 +14,8 @@ static bool IsMoving();
 static void Update(Entity *e);
 static void Animate(Entity *e);
 static void React(Entity *e);
-
 static void Free(Entity *e);
+
 static void SetDestination(Entity *e, float x, float y);
 
 Player *GetSingletonPlayer()
@@ -32,11 +32,18 @@ Player *GetSingletonPlayer()
         player->entity->spriteSheet = playerSpriteSheet;
         player->entity->frameTexture = (Rectangle){0, 24, 16, 24};
         
-        player->entity->destFrame = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
-        player->entity->hitBox.area = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
+        player->entity->destFrame = (Rectangle){16 * 3, 16 * 3, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
+        player->entity->hitBox.area = (Rectangle){16 * 3, 16 * 3, 16 * SCALING_FACTOR * 0.9, 24 * SCALING_FACTOR * 0.5};
         player->entity->hitBox.color = LIME;
+        player->entity->hitBox.owner = player->entity->id;
         player->entity->isReactive = true;
-        
+
+        player->entity->hitBox.canBeBlocked = true;
+        player->entity->hitBox.canPush = true;
+        player->entity->hitBox.canCollect = true;
+        player->entity->hitBox.canBeDestroyed = true;
+        player->entity->hitBox.canBeTeleported = true;
+
         player->entity->IsMoving = IsMoving;
         player->entity->Update = Update;  
         player->entity->Animate = Animate;
@@ -56,16 +63,16 @@ Player *GetSingletonPlayer()
 static void Update(Entity *e) {
     float xAxis = PlayerSpeed, yAxis = PlayerSpeed, angle;
     
-    angle = DirectionToAngle(DEFAULT);
+    angle = DirectionToAngle(AngleToDirection(e->angle));
 
     if (IsKeyDown(KEY_D)) angle                     = DirectionToAngle(RIGHT);
     if (IsKeyDown(KEY_S)) angle                     = DirectionToAngle(DOWN);
     if (IsKeyDown(KEY_A)) angle                     = DirectionToAngle(LEFT);
     if (IsKeyDown(KEY_W)) angle                     = DirectionToAngle(UP);
-    if (IsKeyDown(KEY_S) && IsKeyDown(KEY_D)) angle = DirectionToAngle(DOWN_RIGHT);
-    if (IsKeyDown(KEY_S) && IsKeyDown(KEY_A)) angle = DirectionToAngle(DOWN_LEFT);
-    if (IsKeyDown(KEY_W) && IsKeyDown(KEY_A)) angle = DirectionToAngle(UP_LEFT);
-    if (IsKeyDown(KEY_W) && IsKeyDown(KEY_D)) angle = DirectionToAngle(UP_RIGHT);
+    // if (IsKeyDown(KEY_S) && IsKeyDown(KEY_D)) angle = DirectionToAngle(DOWN_RIGHT);
+    // if (IsKeyDown(KEY_S) && IsKeyDown(KEY_A)) angle = DirectionToAngle(DOWN_LEFT);
+    // if (IsKeyDown(KEY_W) && IsKeyDown(KEY_A)) angle = DirectionToAngle(UP_LEFT);
+    // if (IsKeyDown(KEY_W) && IsKeyDown(KEY_D)) angle = DirectionToAngle(UP_RIGHT);
 
     e->velocity.x = xAxis;
     e->velocity.y = yAxis;
@@ -103,12 +110,6 @@ static void Animate(Entity *e) {
     e->frameTexture.y = e->IsMoving() ? playerActualHeight * (animationCycle / 15 % 3 + 1) : standPositionIndex;
 }
 
-static void React(Entity *e) {
-    static bool showcollision = false;
-    if (showcollision) DrawRectangleLinesEx(e->hitBox.area, 2, e->hitBox.color);
-    if (IsKeyDown(KEY_SPACE)) showcollision = true; else showcollision = false;
-}
-
 static void Free(Entity *e)
 {
     int id = e->id;
@@ -132,8 +133,9 @@ static void SetDestination(Entity *e, float x, float y)
     e->destFrame.x = x;
     e->destFrame.y = y;
 
-    player->entity->hitBox.area.x = e->destFrame.x;
-    player->entity->hitBox.area.y = e->destFrame.y;
+    
+    player->entity->hitBox.area.x = e->destFrame.x + e->destFrame.width / 2 - player->entity->hitBox.area.width / 2;
+    player->entity->hitBox.area.y = e->destFrame.y + e->destFrame.height / 2 - player->entity->hitBox.area.height / 2;
 }
 
 static bool IsMoving()

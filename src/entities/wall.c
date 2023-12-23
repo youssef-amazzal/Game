@@ -23,24 +23,28 @@ static const TextureData TEXTURES_DATA[] = {
         .hitBox = {
             .area = {
                 0,
-                0,
+                TILE_SIZE / 2 - TILE_SIZE / 4,
                 TILE_SIZE,
-                TILE_SIZE,
+                TILE_SIZE / 2.5,
             },
             .color = BLUE,
-        }
+            .canBlock = true,
+            .canBounce = true,
+        },
     },
     {
         .tileTypeId = W_CORNER_TOP_RIGHT,
         .hitBox = {
             .area = {
                 0,
-                0,
+                TILE_SIZE / 2 - TILE_SIZE / 4,
                 TILE_SIZE,
-                TILE_SIZE,
+                TILE_SIZE / 2.5,
             },
             .color = BLUE,
-        }
+            .canBlock = true,
+            .canBounce = true,
+        },
     },
     {
         .tileTypeId = W_CORNER_BOTTOM_LEFT,
@@ -52,6 +56,8 @@ static const TextureData TEXTURES_DATA[] = {
                 TILE_SIZE,
             },
             .color = BLUE,
+            .canBlock = true,
+            .canBounce = true,
         }
     },
     {
@@ -64,6 +70,8 @@ static const TextureData TEXTURES_DATA[] = {
                 TILE_SIZE,
             },
             .color = BLUE,
+            .canBlock = true,
+            .canBounce = true,
         },
     },
     {
@@ -76,7 +84,10 @@ static const TextureData TEXTURES_DATA[] = {
                 TILE_SIZE,
             },
             .color = BLUE,
+            .canBlock = true,
+            .canBounce = true,
         },
+        .zIndex = 1
     },
     {
         .tileTypeId = W_SIDE_RIGHT,
@@ -88,7 +99,10 @@ static const TextureData TEXTURES_DATA[] = {
                 TILE_SIZE,
             },
             .color = BLUE,
+            .canBlock = true,
+            .canBounce = true,
         },
+        .zIndex = 1
     },
     {
         .tileTypeId = W_SIDE_CENTER,
@@ -100,18 +114,23 @@ static const TextureData TEXTURES_DATA[] = {
                 TILE_SIZE,
             },
             .color = BLUE,
+            .canBlock = true,
+            .canBounce = true,
         },
+        .zIndex = 1
     },
     {
         .tileTypeId = W_INTERIOR,
         .hitBox = {
             .area = {
                 0,
-                0,
+                TILE_SIZE / 2 - TILE_SIZE / 4,
                 TILE_SIZE,
-                TILE_SIZE,
+                TILE_SIZE / 2.5,
             },
             .color = BLUE,
+            .canBlock = true,
+            .canBounce = true,
         }
     },
     {
@@ -119,11 +138,13 @@ static const TextureData TEXTURES_DATA[] = {
         .hitBox = {
             .area = {
                 0,
-                0,
+                TILE_SIZE / 2 - TILE_SIZE / 4,
                 TILE_SIZE,
-                TILE_SIZE,
+                TILE_SIZE / 2.5,
             },
             .color = BLUE,
+            .canBlock = true,
+            .canBounce = true,
         }
     },
     {
@@ -131,11 +152,13 @@ static const TextureData TEXTURES_DATA[] = {
         .hitBox = {
             .area = {
                 0,
-                0,
+                TILE_SIZE / 2 - TILE_SIZE / 4,
                 TILE_SIZE,
-                TILE_SIZE,
+                TILE_SIZE / 2.5,
             },
             .color = BLUE,
+            .canBlock = true,
+            .canBounce = true,
         }
     },
     {
@@ -148,6 +171,8 @@ static const TextureData TEXTURES_DATA[] = {
                 TILE_SIZE,
             },
             .color = BLUE,
+            .canBlock = true,
+            .canBounce = true,
         }
     }
 };
@@ -177,6 +202,10 @@ void InitWalls() {
                     wall->entity->hitBox.area.width = textureData.hitBox.area.width * SCALING_FACTOR;
                     wall->entity->hitBox.area.height = textureData.hitBox.area.height * SCALING_FACTOR;
                     wall->entity->hitBox.color = textureData.hitBox.color;
+
+                    wall->entity->hitBox.canBlock = textureData.hitBox.canBlock;
+                    wall->entity->hitBox.canBounce = textureData.hitBox.canBounce;
+
                     
                     wall->entity->isReactive = textureData.isReactive;
                     wall->entity->zIndex = textureData.zIndex;

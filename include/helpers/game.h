@@ -29,7 +29,9 @@ typedef enum DIRECTIONS
     DEFAULT    = DOWN
 } DIRECTIONS ;
 
+char *DirectionToString(DIRECTIONS direction);
 float DirectionToAngle(DIRECTIONS direction);
+DIRECTIONS AngleToDirection(float angle);
 Vector2 CalculateDestination(Vector2 position, Vector2 velocity, float angle);
 
 /************************
@@ -74,7 +76,7 @@ typedef struct Collision {
 } Collision;
 
 extern Collision COLLISION_RECORD[MAX_ENTITIES][MAX_ENTITIES];
-
+Collision *GetCollision(int id1, int id2);
 void DetectHitBoxs();
 
 
