@@ -44,13 +44,13 @@ void startGame() {
     {
         BeginDrawing();
             ClearBackground(BLACK);
-            StartAll();
+            SartGameCycle();
         EndDrawing();
     }
 }
 
 void exitGame() {
-    FreeAll();
+    StopGameCycle();
     UnloadCurrentLevel();
     UnloadTextures();
     CloseWindow();

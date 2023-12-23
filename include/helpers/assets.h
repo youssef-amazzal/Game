@@ -40,7 +40,7 @@ void UnloadTextures();
 
 typedef struct TextureData {
     int tileTypeId; 
-    Collision collision;
+    HitBox hitBox;
     int zIndex;
     bool isReactive;
 } TextureData;

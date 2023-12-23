@@ -33,8 +33,8 @@ Player *GetSingletonPlayer()
         player->entity->frameTexture = (Rectangle){0, 24, 16, 24};
         
         player->entity->destFrame = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
-        player->entity->collision.area = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
-        player->entity->collision.color = LIME;
+        player->entity->hitBox.area = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
+        player->entity->hitBox.color = LIME;
         player->entity->isReactive = true;
         
         player->entity->IsMoving = IsMoving;
@@ -105,7 +105,7 @@ static void Animate(Entity *e) {
 
 static void React(Entity *e) {
     static bool showcollision = false;
-    if (showcollision) DrawRectangleLinesEx(e->collision.area, 2, e->collision.color);
+    if (showcollision) DrawRectangleLinesEx(e->hitBox.area, 2, e->hitBox.color);
     if (IsKeyDown(KEY_SPACE)) showcollision = true; else showcollision = false;
 }
 
@@ -132,8 +132,8 @@ static void SetDestination(Entity *e, float x, float y)
     e->destFrame.x = x;
     e->destFrame.y = y;
 
-    player->entity->collision.area.x = e->destFrame.x;
-    player->entity->collision.area.y = e->destFrame.y;
+    player->entity->hitBox.area.x = e->destFrame.x;
+    player->entity->hitBox.area.y = e->destFrame.y;
 }
 
 static bool IsMoving()

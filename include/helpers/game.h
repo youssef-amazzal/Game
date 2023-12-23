@@ -9,8 +9,8 @@
 #define MAX_ENTITIES 400
 extern int PLAYER_ID;
 
-void StartAll();
-void FreeAll();
+void SartGameCycle();
+void StopGameCycle();
 
 /************************
  * Movement
@@ -38,10 +38,10 @@ Vector2 CalculateDestination(Vector2 position, Vector2 velocity, float angle);
 void SortRenderOrder();
 
 /************************
- * Collision
+ * HitBox
  ************************/
 
-typedef struct Collision {
+typedef struct HitBox {
     int owner;
     Rectangle area;
     Color color;
@@ -66,15 +66,15 @@ typedef struct Collision {
     bool canBounce;
     bool canBeBounced;
 
-} Collision;
+} HitBox;
 
-typedef struct Intersection {
+typedef struct Collision {
     Rectangle area;
     bool isColliding;
-} Intersection;
+} Collision;
 
-extern Intersection INTERSECTION_RECORD[MAX_ENTITIES][MAX_ENTITIES];
+extern Collision COLLISION_RECORD[MAX_ENTITIES][MAX_ENTITIES];
 
-void DetectCollisions();
+void DetectHitBoxs();
 
 

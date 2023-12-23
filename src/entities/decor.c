@@ -7,7 +7,7 @@
 const TextureData TEXTURES_DATA[] = {
     {
         .tileTypeId = D_BOX_TOP, 
-        .collision = {
+        .hitBox = {
             .area = {
                 0,
                 0,
@@ -20,7 +20,7 @@ const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = D_BOX_BODY ,
-        .collision = {
+        .hitBox = {
             .area = {
                 0,
                 0,
@@ -58,9 +58,9 @@ void InitDecors()
                     Decor *decor = GetDecor(layerArray[row][col]);
                     TextureData textureData = TEXTURES_DATA[TypeToIndex(layerArray[row][col])];
 
-                    decor->entity->collision.area.width = textureData.collision.area.width * SCALING_FACTOR;
-                    decor->entity->collision.area.height = textureData.collision.area.height * SCALING_FACTOR;
-                    decor->entity->collision.color = textureData.collision.color;
+                    decor->entity->hitBox.area.width = textureData.hitBox.area.width * SCALING_FACTOR;
+                    decor->entity->hitBox.area.height = textureData.hitBox.area.height * SCALING_FACTOR;
+                    decor->entity->hitBox.color = textureData.hitBox.color;
 
                     decor->entity->isReactive = textureData.isReactive;                    
                     decor->entity->zIndex = textureData.zIndex;
@@ -119,8 +119,8 @@ static void SetDestination(Entity *decorEnt, float x, float y)
     decorEnt->destFrame.x = x;
     decorEnt->destFrame.y = y;
 
-    decor->entity->collision.area.x = textureData.collision.area.x * SCALING_FACTOR + decor->entity->destFrame.x;
-    decor->entity->collision.area.y = textureData.collision.area.y * SCALING_FACTOR + decor->entity->destFrame.y;
+    decor->entity->hitBox.area.x = textureData.hitBox.area.x * SCALING_FACTOR + decor->entity->destFrame.x;
+    decor->entity->hitBox.area.y = textureData.hitBox.area.y * SCALING_FACTOR + decor->entity->destFrame.y;
 }
 
 static DECORS IndexToType(int index) 

@@ -20,7 +20,7 @@ Entity *CreateEntity()
     Entity *e = malloc(sizeof(Entity));
     e->id = LAST_ID++;
     e->child = NULL;
-    e->collision.owner = e->id;
+    e->hitBox.owner = e->id;
     
     e->spriteSheet = NULL;
     e->frameTexture = (Rectangle){0, 0, TILE_SIZE, TILE_SIZE};
@@ -58,13 +58,13 @@ static void Render(Entity *e)
     static bool showcollision = false;
     DrawTexturePro(*(e->spriteSheet), e->frameTexture, e->destFrame, e->origin, 0, WHITE);
     if (showcollision) {
-        DrawRectangleLinesEx(e->collision.area, 1, e->collision.color);
+        DrawRectangleLinesEx(e->hitBox.area, 1, e->hitBox.color);
 
-        // a workaround to show the collision below the current entity
+        // a workaround to show the hitBox below the current entity
         for (int i = 0; i < e->id; i++) {
             if (ENTITY_RECORD[i] != NULL) {
-                if (INTERSECTION_RECORD[i][e->id].isColliding) {
-                    DrawRectangleRec(INTERSECTION_RECORD[i][e->id].area, (Color){255, 180, 0, 100});
+                if (COLLISION_RECORD[i][e->id].isColliding) {
+                    DrawRectangleRec(COLLISION_RECORD[i][e->id].area, (Color){255, 180, 0, 100});
                 }
             }
         }
@@ -81,8 +81,9 @@ static void Render(Entity *e)
 }
 
 static void React(Entity *e){
-    if (e->isReactive) {
-        
+    Entity *other;
+    for (int i = e->id + 1; i < LAST_ID; i++) {
+        other = ENTITY_RECORD[i];
     }
 }
 
@@ -107,3 +108,13 @@ static bool IsMoving(Entity *e)
 static void SetDestination(Entity *e, float x, float y) {}
 
 
+// TODO: have a doubt whether I need to find a way to call those reactions only 
+//       for the first participant of the hitBox and skip the second one
+
+void PushReaction(Entity *pusher, Entity *pushed, void (*setDestination)(Entity *pushed, float x, float y)) {
+    
+}
+
+void BlockReaction(Entity *blocker, Entity *blocked, void (*setDestination)(Entity *blocked, float x, float y)) {
+   
+}

@@ -18,7 +18,7 @@ typedef struct Entity
     float angle;
     Vector2 origin;
 
-    Collision collision;
+    HitBox hitBox;
     bool isReactive;
     
     void (*Update)(struct Entity *e); // used normally to update the position
@@ -29,8 +29,8 @@ typedef struct Entity
     
     bool (*IsMoving)();
     void (*SetDestination)(struct Entity *e, float x, float y);
-    void (*GetCollisions)(struct Entity *e);
-    bool (*CheckCollision)(struct Entity *e1, struct Entity *e2);
+    void (*GetHitBoxs)(struct Entity *e);
+    bool (*CheckHitBox)(struct Entity *e1, struct Entity *e2);
 
 } Entity;
 

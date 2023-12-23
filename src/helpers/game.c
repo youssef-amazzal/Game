@@ -6,7 +6,7 @@
 
 
 /************************
- * Entities management funcs
+ * Game Cycle Funcs
  ************************/
 void StartAll() {
     for (int i = 0; i < LAST_ID; i++)
@@ -19,7 +19,7 @@ void StartAll() {
     }
     
     SortRenderOrder();
-    DetectCollisions();
+    DetectHitBoxs();
 
     for (int i = 0; i < LAST_ID; i++)
     {
@@ -32,7 +32,7 @@ void StartAll() {
     
 }
 
-void FreeAll()
+void StopGameCycle()
 {
     for (int i = 0; i < LAST_ID; i++)
     {
@@ -107,25 +107,24 @@ void SortRenderOrder()
 }
 
 /************************
- * Collision Funcs
+ * HitBox Funcs
  ************************/
-Intersection INTERSECTION_RECORD[MAX_ENTITIES][MAX_ENTITIES];
+Collision COLLISION_RECORD[MAX_ENTITIES][MAX_ENTITIES];
 
-void DetectCollisions()
+void DetectHitBoxs()
 {
    for (int i = 0; i < LAST_ID; i++)
     {
         for (int j = i + 1; j < LAST_ID; j++)
         {
-            INTERSECTION_RECORD[i][j].isColliding = false;
+            COLLISION_RECORD[i][j].isColliding = false;
 
             if (ENTITY_RECORD[i] != NULL && ENTITY_RECORD[j] != NULL)
             {
-                if (CheckCollisionRecs(ENTITY_RECORD[i]->collision.area, ENTITY_RECORD[j]->collision.area))
+                if (CheckHitBoxRecs(ENTITY_RECORD[i]->hitBox.area, ENTITY_RECORD[j]->hitBox.area))
                 {
-                    Rectangle intersection = GetCollisionRec(ENTITY_RECORD[i]->collision.area, ENTITY_RECORD[j]->collision.area);
-                    INTERSECTION_RECORD[i][j].area = intersection;
-                    INTERSECTION_RECORD[i][j].isColliding = true;
+                    Rectangle collision = GetHitBoxRec(ENTITY_RECORD[i]->hitBox.area, ENTITY_RECORD[j]->hitBox.area);
+                    COLLISION_RECORD[i][j].area = collision;
                 }
             }
         }
@@ -139,12 +138,5 @@ void PushReaction(Entity *pusher, Entity *pushed, void (*setDestination)(Entity 
     if (pushed->collision.canBePushed) {
         Vector2 dest = CalculateDestination((Vector2) {pushed->destFrame.x, pushed->destFrame.y}, pusher->velocity, pusher->angle);
         setDestination(pushed, dest.x, dest.y);
-    }
-}
-
-void BlockReaction(Entity *blocker, Entity *blocked, void (*setDestination)(Entity *blocked, float x, float y)) {
-    if (blocked->collision.canBeBlocked) {
-        Vector2 dest = CalculateDestination((Vector2) {blocked->destFrame.x, blocked->destFrame.y}, (Vector2) {0, 0}, blocker->angle);
-        setDestination(blocked, dest.x, dest.y);
     }
 }

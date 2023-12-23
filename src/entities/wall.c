@@ -7,7 +7,7 @@
 static const TextureData TEXTURES_DATA[] = {
     {
         .tileTypeId = W_CEILING, 
-        .collision = {
+        .hitBox = {
             .area = {
                 0,
                 0,
@@ -20,7 +20,7 @@ static const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = W_CORNER_TOP_LEFT,
-        .collision = {
+        .hitBox = {
             .area = {
                 0,
                 0,
@@ -32,7 +32,7 @@ static const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = W_CORNER_TOP_RIGHT,
-        .collision = {
+        .hitBox = {
             .area = {
                 0,
                 0,
@@ -44,7 +44,7 @@ static const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = W_CORNER_BOTTOM_LEFT,
-        .collision = {
+        .hitBox = {
             .area = {
                 0,
                 0,
@@ -56,7 +56,7 @@ static const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = W_CORNER_BOTTOM_RIGHT,
-        .collision = {
+        .hitBox = {
             .area = {
                 TILE_SIZE - TILE_SIZE / 3,
                 0,
@@ -68,7 +68,7 @@ static const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = W_SIDE_LEFT,
-        .collision = {
+        .hitBox = {
             .area = {
                 0,
                 0,
@@ -80,7 +80,7 @@ static const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = W_SIDE_RIGHT,
-        .collision = {
+        .hitBox = {
             .area = {
                 TILE_SIZE - TILE_SIZE / 3,
                 0,
@@ -92,7 +92,7 @@ static const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = W_SIDE_CENTER,
-        .collision = {
+        .hitBox = {
             .area = {
                 TILE_SIZE / 3,
                 0,
@@ -104,7 +104,7 @@ static const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = W_INTERIOR,
-        .collision = {
+        .hitBox = {
             .area = {
                 0,
                 0,
@@ -116,7 +116,7 @@ static const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = W_EXTERIOR,
-        .collision = {
+        .hitBox = {
             .area = {
                 0,
                 0,
@@ -128,7 +128,7 @@ static const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = W_T_TOP,
-        .collision = {
+        .hitBox = {
             .area = {
                 0,
                 0,
@@ -140,7 +140,7 @@ static const TextureData TEXTURES_DATA[] = {
     },
     {
         .tileTypeId = W_T_BOTTOM,
-        .collision = {
+        .hitBox = {
             .area = {
                 0 + (float) TILE_SIZE / 3,
                 0,
@@ -174,9 +174,9 @@ void InitWalls() {
                     Wall *wall = GetWall(layerArray[row][col]);
                     TextureData textureData = TEXTURES_DATA[TypeToIndex(layerArray[row][col])];
                     
-                    wall->entity->collision.area.width = textureData.collision.area.width * SCALING_FACTOR;
-                    wall->entity->collision.area.height = textureData.collision.area.height * SCALING_FACTOR;
-                    wall->entity->collision.color = textureData.collision.color;
+                    wall->entity->hitBox.area.width = textureData.hitBox.area.width * SCALING_FACTOR;
+                    wall->entity->hitBox.area.height = textureData.hitBox.area.height * SCALING_FACTOR;
+                    wall->entity->hitBox.color = textureData.hitBox.color;
                     
                     wall->entity->isReactive = textureData.isReactive;
                     wall->entity->zIndex = textureData.zIndex;
@@ -234,11 +234,11 @@ static void SetDestination(Entity *wallEnt, float x, float y)
     wallEnt->destFrame.x = x;
     wallEnt->destFrame.y = y;
     
-    float newCollisionX = textureData.collision.area.x * SCALING_FACTOR + wallEnt->destFrame.x;
-    float newCollisionY = textureData.collision.area.y * SCALING_FACTOR + wallEnt->destFrame.y;
+    float newHitBoxX = textureData.hitBox.area.x * SCALING_FACTOR + wallEnt->destFrame.x;
+    float newHitBoxY = textureData.hitBox.area.y * SCALING_FACTOR + wallEnt->destFrame.y;
 
-    wall->entity->collision.area.x = newCollisionX;
-    wall->entity->collision.area.y = newCollisionY;
+    wall->entity->hitBox.area.x = newHitBoxX;
+    wall->entity->hitBox.area.y = newHitBoxY;
     
 }
 
