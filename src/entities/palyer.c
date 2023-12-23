@@ -6,13 +6,17 @@
 #include "game.h"
 #include "assets.h"
 
-#define PlayerSpeed 120
+#define PlayerSpeed FRAME_RATE
+
+int PLAYER_ID;
 
 static bool IsMoving();
-static void Update(Entity *playerEnt);
-static void Animate(Entity *playerEnt);
-static void Free(Entity *playerEnt);
-static void SetDestination(Entity *playerEnt, float x, float y);
+static void Update(Entity *e);
+static void Animate(Entity *e);
+static void React(Entity *e);
+
+static void Free(Entity *e);
+static void SetDestination(Entity *e, float x, float y);
 
 Player *GetSingletonPlayer()
 {
@@ -31,6 +35,7 @@ Player *GetSingletonPlayer()
         player->entity->destFrame = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
         player->entity->collision.area = (Rectangle){0, 0, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
         player->entity->collision.color = LIME;
+        player->entity->isReactive = true;
         
         player->entity->IsMoving = IsMoving;
         player->entity->Update = Update;  
@@ -38,6 +43,7 @@ Player *GetSingletonPlayer()
         player->entity->Free = Free;
         player->entity->SetDestination = SetDestination;
 
+        PLAYER_ID = player->entity->id;
         initialized = true;
     }
 
@@ -45,11 +51,9 @@ Player *GetSingletonPlayer()
 }
 
 /************************
- *                      *
- * Core Funcs           *
- *                      *
+ * Core Funcs  
  ************************/
-static void Update(Entity *playerEnt) {
+static void Update(Entity *e) {
     float xAxis = PlayerSpeed, yAxis = PlayerSpeed, angle;
     
     angle = DirectionToAngle(DEFAULT);
@@ -63,26 +67,25 @@ static void Update(Entity *playerEnt) {
     if (IsKeyDown(KEY_W) && IsKeyDown(KEY_A)) angle = DirectionToAngle(UP_LEFT);
     if (IsKeyDown(KEY_W) && IsKeyDown(KEY_D)) angle = DirectionToAngle(UP_RIGHT);
 
-    playerEnt->velocity.x = xAxis;
-    playerEnt->velocity.y = yAxis;
-    playerEnt->angle = angle;
+    e->velocity.x = xAxis;
+    e->velocity.y = yAxis;
+    e->angle = angle;
 
-    if (playerEnt->IsMoving())
+    if (e->IsMoving())
     {
-        float x = playerEnt->destFrame.x + playerEnt->velocity.x * cos(playerEnt->angle) * GetFrameTime();
-        float y = playerEnt->destFrame.y + playerEnt->velocity.y * sin(playerEnt->angle) * GetFrameTime();
+        Vector2 dest = CalculateDestination((Vector2) {e->destFrame.x, e->destFrame.y}, e->velocity, e->angle);
 
-        SetDestination(playerEnt, x, y);
+        SetDestination(e, dest.x, dest.y);
     }
 }
 
-static void Animate(Entity *playerEnt) {
-    float angle = playerEnt->angle;
-    int playerActualHeight = playerEnt->frameTexture.height;
-    int playerActualWidth = playerEnt->frameTexture.width;
+static void Animate(Entity *e) {
+    float angle = e->angle;
+    int playerActualHeight = e->frameTexture.height;
+    int playerActualWidth = e->frameTexture.width;
     
     static int animationCycle = 0, counter = 0;
-    animationCycle = playerEnt->IsMoving() ? animationCycle + 1 : 2;
+    animationCycle = e->IsMoving() ? animationCycle + 1 : 2;
 
     int standPositionIndex = playerActualHeight * 2;
 
@@ -96,8 +99,41 @@ static void Animate(Entity *playerEnt) {
     if (angle == DirectionToAngle(DOWN_LEFT))    index = DOWN_LEFT;
     if (angle == DirectionToAngle(UP_LEFT))      index = UP_LEFT;
 
-    playerEnt->frameTexture.x = playerActualWidth * index;
-    playerEnt->frameTexture.y = playerEnt->IsMoving() ? playerActualHeight * (animationCycle / 15 % 3 + 1) : standPositionIndex;
+    e->frameTexture.x = playerActualWidth * index;
+    e->frameTexture.y = e->IsMoving() ? playerActualHeight * (animationCycle / 15 % 3 + 1) : standPositionIndex;
+}
+
+static void React(Entity *e) {
+    static bool showcollision = false;
+    if (showcollision) DrawRectangleLinesEx(e->collision.area, 2, e->collision.color);
+    if (IsKeyDown(KEY_SPACE)) showcollision = true; else showcollision = false;
+}
+
+static void Free(Entity *e)
+{
+    int id = e->id;
+    Player *player = (Player *)e->child;
+
+    free(e);
+    free(player);
+
+    ENTITY_RECORD[id] = NULL;
+    
+}
+
+/************************
+ * Helper Funcs
+ ************************/ 
+
+static void SetDestination(Entity *e, float x, float y)
+{
+    Player *player = (Player *)e->child;
+
+    e->destFrame.x = x;
+    e->destFrame.y = y;
+
+    player->entity->collision.area.x = e->destFrame.x;
+    player->entity->collision.area.y = e->destFrame.y;
 }
 
 static bool IsMoving()
@@ -110,33 +146,4 @@ static bool IsMoving()
     if (!moving && IsKeyDown(KEY_A)) moving = true;
 
     return moving;
-}
-
-static void Free(Entity *playerEnt)
-{
-    int id = playerEnt->id;
-    Player *player = (Player *)playerEnt->child;
-
-    free(playerEnt);
-    free(player);
-
-    ENTITY_RECORD[id] = NULL;
-    
-}
-
-/************************
- *                      *
- * Helper Funcs         *
- *                      *
- ************************/ 
-
-static void SetDestination(Entity *playerEnt, float x, float y)
-{
-    Player *player = (Player *)playerEnt->child;
-
-    playerEnt->destFrame.x = x;
-    playerEnt->destFrame.y = y;
-
-    player->entity->collision.area.x = playerEnt->destFrame.x;
-    player->entity->collision.area.y = playerEnt->destFrame.y;
 }

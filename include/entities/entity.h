@@ -19,29 +19,23 @@ typedef struct Entity
     Vector2 origin;
 
     Collision collision;
+    bool isReactive;
     
     void (*Update)(struct Entity *e); // used normally to update the position
+    void (*Animate)(struct Entity *e);
     void (*Render)(struct Entity *e);
-    void (*Animate)();
+    void (*React)(struct Entity *e);
     void (*Free)(struct Entity *e); // remember this should be implemented in the child
     
     bool (*IsMoving)();
     void (*SetDestination)(struct Entity *e, float x, float y);
+    void (*GetCollisions)(struct Entity *e);
+    bool (*CheckCollision)(struct Entity *e1, struct Entity *e2);
 
 } Entity;
 
 
-typedef struct AssetsData {
-    int tileTypeId; 
-    Collision collision;
-    int zIndex;
-} AssetsData;
-
-
-#define MAX_ENTITIES 400
 extern Entity *ENTITY_RECORD[];
+extern int LAST_ID;
 
 Entity *CreateEntity();
-
-void StartAll();
-void FreeAll();

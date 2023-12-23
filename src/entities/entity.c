@@ -4,21 +4,23 @@
 #include <stdio.h>
 
 Entity *ENTITY_RECORD[MAX_ENTITIES];
-static int lastEntityID = 0;
+int LAST_ID = 0;
 
 static void Update(Entity *e);
 static void Animate(Entity *e);
 static void Render(Entity *e);
-static bool IsMoving(Entity *e);
+static void React(Entity *e);
 static void Free(Entity *e);
-static void SortRenderOrder();
+
+static bool IsMoving(Entity *e);
 static void SetDestination(Entity *e, float x, float y);
 
 Entity *CreateEntity() 
 {
     Entity *e = malloc(sizeof(Entity));
-    e->id = lastEntityID++;
+    e->id = LAST_ID++;
     e->child = NULL;
+    e->collision.owner = e->id;
     
     e->spriteSheet = NULL;
     e->frameTexture = (Rectangle){0, 0, TILE_SIZE, TILE_SIZE};
@@ -33,6 +35,8 @@ Entity *CreateEntity()
     e->Update = Update;
     e->Animate = Animate;
     e->Render = Render;
+    e->React = React;
+    e->Free = Free;
 
     e->IsMoving = IsMoving;
     e->SetDestination = SetDestination;
@@ -42,16 +46,9 @@ Entity *CreateEntity()
 }
 
 /************************
- *                      *
- * Core Funcs           *
- *                      *
+ * Core Funcs
  ************************/ 
 
-// since not all entities are not moving,
-// it's better to keep this function declared but empty
-// and implement it in children. that way we can avoid
-// checking if the function is NULL and normally it will
-// be optimized out by the compiler
 static void Update(Entity *e) {}
 
 static void Animate(Entity *e){}
@@ -60,13 +57,23 @@ static void Render(Entity *e)
 {
     static bool showcollision = false;
     DrawTexturePro(*(e->spriteSheet), e->frameTexture, e->destFrame, e->origin, 0, WHITE);
-    if (showcollision) DrawRectangleLinesEx(e->collision.area, 2, e->collision.color);
+    if (showcollision) {
+        DrawRectangleLinesEx(e->collision.area, 1, e->collision.color);
+        for (int i = e->id + 1; i < LAST_ID; i++) {
+            if (ENTITY_RECORD[i] != NULL) {
+                if (INTERSECTION_RECORD[e->id][i].isColliding) {
+                    DrawRectangleRec(INTERSECTION_RECORD[e->id][i].area, (Color){255, 180, 0, 100});
+                }
+            }
+        }
+    }
     if (IsKeyDown(KEY_SPACE)) showcollision = true; else showcollision = false;
 }
 
-static bool IsMoving(Entity *e)
-{
-    return e->velocity.x != 0 || e->velocity.y != 0;
+static void React(Entity *e){
+    if (e->isReactive) {
+        
+    }
 }
 
 static void Free(Entity *e)
@@ -79,70 +86,14 @@ static void Free(Entity *e)
 }
 
 /************************
- *                      *
- * Public Mass Funcs    *
- *                      *
+ * Helper Funcs
  ************************/
 
-void StartAll() {
-    for (int i = 0; i < lastEntityID; i++)
-    {
-        if (ENTITY_RECORD[i] != NULL)
-        {
-            ENTITY_RECORD[i]->Update(ENTITY_RECORD[i]);
-            ENTITY_RECORD[i]->Animate(ENTITY_RECORD[i]);
-        }
-    }
-    
-    SortRenderOrder();
-
-    for (int i = 0; i < lastEntityID; i++)
-    {
-        if (ENTITY_RECORD[i] != NULL)
-        {
-            ENTITY_RECORD[i]->Render(ENTITY_RECORD[i]);
-        }
-    }
-}
-
-void FreeAll()
+static bool IsMoving(Entity *e)
 {
-    for (int i = 0; i < lastEntityID; i++)
-    {
-        if (ENTITY_RECORD[i] != NULL)
-        {
-            ENTITY_RECORD[i]->Free(ENTITY_RECORD[i]);
-        }
-    }
-}
-
-/************************
- *                      *
- * Helper Funcs         *
- *                      *
- ************************/
-
-static void SortRenderOrder()
-{
-    for (int i = 0; i < lastEntityID; i++)
-    {
-        for (int j = 0; j < lastEntityID - i - 1; j++)
-        {
-            int z = ENTITY_RECORD[j]->zIndex;
-            int y = ENTITY_RECORD[j]->destFrame.y;
-            if (z > ENTITY_RECORD[j + 1]->zIndex || (z == ENTITY_RECORD[j + 1]->zIndex && y > ENTITY_RECORD[j + 1]->destFrame.y))
-            {
-                Entity *temp = ENTITY_RECORD[j];
-                ENTITY_RECORD[j] = ENTITY_RECORD[j + 1];
-                ENTITY_RECORD[j + 1] = temp;
-
-                ENTITY_RECORD[j]->id = j;
-                ENTITY_RECORD[j + 1]->id = j + 1;
-
-                // printf("swapped %d and %d\n", j, j + 1);
-            }
-        }
-    }
+    return e->velocity.x != 0 || e->velocity.y != 0;
 }
 
 static void SetDestination(Entity *e, float x, float y) {}
+
+

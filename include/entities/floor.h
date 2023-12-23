@@ -12,7 +12,7 @@ typedef enum FLOORS_INDEX {
     F_NORMAL_INDEX = 0
 } FLOORS_INDEX;
 
-static const AssetsData FLOORS_DATA[] = {
+static const TextureData FLOORS_DATA[] = {
     {F_NORMAL, {0, 0, TILE_SIZE * SCALING_FACTOR, TILE_SIZE * SCALING_FACTOR}}
 };
 

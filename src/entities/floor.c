@@ -34,7 +34,6 @@ void InitFloors() {
         initialized = true;
     }
 }
-    
 
 Floor *GetSigletonFloor(FLOORS f_type)
 {
@@ -42,9 +41,7 @@ Floor *GetSigletonFloor(FLOORS f_type)
 }
 
 /************************
- *                      *
- * Core Funcs           *
- *                      *
+ * Core Funcs
  ************************/
 
 static void render(Entity *floorEnt)
@@ -82,9 +79,7 @@ static void Free(Entity *floorEnt)
 }
 
 /************************
- *                      *
- * Helper Funcs         *
- *                      *
+ * Helper Funcs
  ************************/ 
 static FLOORS IndexToType(int index) {
     switch (index)

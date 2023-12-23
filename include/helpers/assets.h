@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "stdlib.h"
+#include "game.h"
 
 /*****************
  * PATHS
@@ -36,6 +37,13 @@ extern Texture2D *decorSpriteSheet;
 
 void LoadTextures();
 void UnloadTextures();
+
+typedef struct TextureData {
+    int tileTypeId; 
+    Collision collision;
+    int zIndex;
+    bool isReactive;
+} TextureData;
 
 /*****************
  * LEVELS

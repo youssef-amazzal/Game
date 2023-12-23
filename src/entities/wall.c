@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static const AssetsData COLLISION_DATA[] = {
+static const TextureData TEXTURES_DATA[] = {
     {
         .tileTypeId = W_CEILING, 
         .collision = {
@@ -172,14 +172,14 @@ void InitWalls() {
             {
                 if (layerArray[row][col] != -1) {
                     Wall *wall = GetWall(layerArray[row][col]);
-                    AssetsData assetsData = COLLISION_DATA[TypeToIndex(layerArray[row][col])];
+                    TextureData textureData = TEXTURES_DATA[TypeToIndex(layerArray[row][col])];
                     
-                    wall->entity->collision.area.width = assetsData.collision.area.width * SCALING_FACTOR;
-                    wall->entity->collision.area.height = assetsData.collision.area.height * SCALING_FACTOR;
-                    wall->entity->collision.color = assetsData.collision.color;
+                    wall->entity->collision.area.width = textureData.collision.area.width * SCALING_FACTOR;
+                    wall->entity->collision.area.height = textureData.collision.area.height * SCALING_FACTOR;
+                    wall->entity->collision.color = textureData.collision.color;
                     
-
-                    wall->entity->zIndex = assetsData.zIndex;
+                    wall->entity->isReactive = textureData.isReactive;
+                    wall->entity->zIndex = textureData.zIndex;
 
                     SetDestination(wall->entity, col * TILE_SIZE * SCALING_FACTOR, row * TILE_SIZE * SCALING_FACTOR);
                 }
@@ -190,10 +190,10 @@ void InitWalls() {
     }
 }
 
-static Wall *GetWall(WALLS w_type)
+static Wall *GetWall(WALLS type)
 {
     Wall *wall = malloc(sizeof(Wall));
-    wall->type = w_type;
+    wall->type = type;
 
     wall->entity = CreateEntity();
     wall->entity->child = wall;
@@ -208,9 +208,7 @@ static Wall *GetWall(WALLS w_type)
 }
 
 /************************
- *                      *
- * Core Funcs           *
- *                      *
+ * Core Funcs  
  ************************/
 
 static void Free(Entity *wallEnt)
@@ -224,23 +222,20 @@ static void Free(Entity *wallEnt)
     ENTITY_RECORD[id] = NULL;
 }
 
-
 /************************
- *                      *
- * Helper Funcs         *
- *                      *
+ * Helper Funcs
  ************************/ 
 
 static void SetDestination(Entity *wallEnt, float x, float y)
 {
     Wall *wall = (Wall *)wallEnt->child;
-    AssetsData assetsData = COLLISION_DATA[TypeToIndex(wall->type)];
+    TextureData textureData = TEXTURES_DATA[TypeToIndex(wall->type)];
 
     wallEnt->destFrame.x = x;
     wallEnt->destFrame.y = y;
     
-    float newCollisionX = assetsData.collision.area.x * SCALING_FACTOR + wallEnt->destFrame.x;
-    float newCollisionY = assetsData.collision.area.y * SCALING_FACTOR + wallEnt->destFrame.y;
+    float newCollisionX = textureData.collision.area.x * SCALING_FACTOR + wallEnt->destFrame.x;
+    float newCollisionY = textureData.collision.area.y * SCALING_FACTOR + wallEnt->destFrame.y;
 
     wall->entity->collision.area.x = newCollisionX;
     wall->entity->collision.area.y = newCollisionY;

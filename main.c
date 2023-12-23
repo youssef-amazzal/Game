@@ -27,7 +27,7 @@ int main()
 
 void initGame() {
     InitWindow(screenWidth, screenHeight, "Snoopy Game");
-    SetTargetFPS(120);
+    SetTargetFPS(FRAME_RATE);
     
     LoadTextures();
     LoadLevel(1);

@@ -4,19 +4,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-const AssetsData COLLISION_DATA[] = {
+const TextureData TEXTURES_DATA[] = {
     {
         .tileTypeId = D_BOX_TOP, 
         .collision = {
             .area = {
                 0,
-                TILE_SIZE - TILE_SIZE / 2.5,
-                TILE_SIZE,
-                TILE_SIZE / 2.5,
+                0,
+                0,
+                0,
             },
             .color = RED,
         },
-        .zIndex = 1
+        .zIndex = 1,
     },
     {
         .tileTypeId = D_BOX_BODY ,
@@ -28,7 +28,8 @@ const AssetsData COLLISION_DATA[] = {
                 TILE_SIZE,
             },
             .color = RED,
-        }
+        },
+        .isReactive = true,
     },
 };
 
@@ -55,13 +56,14 @@ void InitDecors()
                 if (layerArray[row][col] != -1) 
                 {
                     Decor *decor = GetDecor(layerArray[row][col]);
-                    AssetsData assetsData = COLLISION_DATA[TypeToIndex(layerArray[row][col])];
+                    TextureData textureData = TEXTURES_DATA[TypeToIndex(layerArray[row][col])];
 
-                    decor->entity->collision.area.width = assetsData.collision.area.width * SCALING_FACTOR;
-                    decor->entity->collision.area.height = assetsData.collision.area.height * SCALING_FACTOR;
-                    decor->entity->collision.color = assetsData.collision.color;
-                    
-                    decor->entity->zIndex = assetsData.zIndex;
+                    decor->entity->collision.area.width = textureData.collision.area.width * SCALING_FACTOR;
+                    decor->entity->collision.area.height = textureData.collision.area.height * SCALING_FACTOR;
+                    decor->entity->collision.color = textureData.collision.color;
+
+                    decor->entity->isReactive = textureData.isReactive;                    
+                    decor->entity->zIndex = textureData.zIndex;
 
                     SetDestination(decor->entity, col * TILE_SIZE * SCALING_FACTOR, row * TILE_SIZE * SCALING_FACTOR);
                 }
@@ -90,9 +92,7 @@ static Decor *GetDecor(DECORS type)
 }
 
 /************************
- *                      *
- * Core Funcs           *
- *                      *
+ * Core Funcs  
  ************************/
 
 static void Free(Entity *decorEnt)
@@ -108,23 +108,20 @@ static void Free(Entity *decorEnt)
 
 
 /************************
- *                      *
- * Helper Funcs         *
- *                      *
+ * Helper Funcs
  ************************/ 
 
 static void SetDestination(Entity *decorEnt, float x, float y)
 {
     Decor *decor = (Decor *)decorEnt->child;
-    AssetsData assetsData = COLLISION_DATA[TypeToIndex(decor->type)];
+    TextureData textureData = TEXTURES_DATA[TypeToIndex(decor->type)];
 
     decorEnt->destFrame.x = x;
     decorEnt->destFrame.y = y;
 
-    decor->entity->collision.area.x = assetsData.collision.area.x * SCALING_FACTOR + decor->entity->destFrame.x;
-    decor->entity->collision.area.y = assetsData.collision.area.y * SCALING_FACTOR + decor->entity->destFrame.y;
+    decor->entity->collision.area.x = textureData.collision.area.x * SCALING_FACTOR + decor->entity->destFrame.x;
+    decor->entity->collision.area.y = textureData.collision.area.y * SCALING_FACTOR + decor->entity->destFrame.y;
 }
-
 
 static DECORS IndexToType(int index) 
 {
