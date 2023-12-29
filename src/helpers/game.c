@@ -16,6 +16,7 @@ void SartGameCycle() {
         {
             ENTITY_RECORD[i]->Update(ENTITY_RECORD[i]);
             ENTITY_RECORD[i]->Animate(ENTITY_RECORD[i]);
+            
         }
     }
     
@@ -100,6 +101,9 @@ float DirectionToAngle(DIRECTIONS direction) {
         
         case UP_RIGHT:
             return 7 * PI / 4;
+
+        default:
+            return 0;
     };
 }
 DIRECTIONS AngleToDirection(float angle) {
@@ -176,6 +180,52 @@ void SortRenderOrder()
  * HitBox Funcs
  ************************/
 Collision COLLISION_RECORD[MAX_ENTITIES][MAX_ENTITIES];
+
+DIRECTIONS DetectCollisionDirection(int colliderId, int collidedId)
+{
+    Entity *collider = ENTITY_RECORD[colliderId];
+    Entity *collided = ENTITY_RECORD[collidedId];
+
+    if (!CheckCollisionRecs(collider->hitBox.area, collided->hitBox.area)) return DEFAULT;
+
+    Rectangle collisionArea = GetCollisionRec(collider->hitBox.area, collided->hitBox.area);
+    
+    DIRECTIONS direction = DEFAULT;
+
+    if (collisionArea.width > collisionArea.height) {
+        if (collider->destFrame.y > collided->destFrame.y) {
+            direction = DOWN;
+        } else {
+            direction = UP;
+        }
+    }
+
+    if (collisionArea.width < collisionArea.height) {
+        if (collider->destFrame.x > collided->destFrame.x) {
+            direction = RIGHT;
+        } else {
+            direction = LEFT;
+        }
+    }
+    
+    if (collisionArea.width == collisionArea.height) {
+        if (collider->destFrame.x > collided->destFrame.x) {
+            if (collider->destFrame.y > collided->destFrame.y) {
+                direction = DOWN_RIGHT;
+            } else {
+                direction = UP_RIGHT;
+            }
+        } else {
+            if (collider->destFrame.y > collided->destFrame.y) {
+                direction = DOWN_LEFT;
+            } else {
+                direction = UP_LEFT;
+            }
+        }
+    }
+
+    return direction;
+}
 
 void DetectHitBoxs()
 {

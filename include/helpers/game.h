@@ -84,5 +84,5 @@ typedef struct Collision {
 extern Collision COLLISION_RECORD[MAX_ENTITIES][MAX_ENTITIES];
 Collision *GetCollision(int id1, int id2);
 void DetectHitBoxs();
-
+DIRECTIONS DetectCollisionDirection(int colliderId, int collidedId);
 

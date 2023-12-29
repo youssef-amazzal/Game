@@ -18,7 +18,7 @@ static bool IsMoving(Entity *e);
 static void SetDestination(Entity *e, float x, float y);
 
 static void PushReaction(Entity *e1, Entity *e2);
-static void BlockReaction(Entity *blocker, Entity *blocked, void (*setDestination)(Entity *blocked, float x, float y));
+static void BlockReaction(Entity *e1, Entity *e2);
 
 Entity *CreateEntity() 
 {
@@ -84,7 +84,9 @@ static void initHitBox(Entity *e)
  * Core Funcs
  ************************/ 
 
-static void Update(Entity *e) {}
+static void Update(Entity *e) {
+    
+}
 
 static void Animate(Entity *e){}
 
@@ -189,11 +191,7 @@ static void React(Entity *e) {
     }
 
     if (dominantPushOther != NULL) PushReaction(this, dominantPushOther);
-    
-
-    if (dominantBlockOther != NULL && dominantBlockOther->hitBox.canBlock && this->hitBox.canBeBlocked) BlockReaction(dominantBlockOther, this, this->SetDestination);
-    else if (dominantBlockOther != NULL && dominantBlockOther->hitBox.canBeBlocked && this->hitBox.canBlock) BlockReaction(this, dominantBlockOther, dominantBlockOther->SetDestination);
-
+    if (dominantBlockOther != NULL) BlockReaction(this, dominantBlockOther);
 }
 
 static void Free(Entity *e)
@@ -219,10 +217,10 @@ static void SetDestination(Entity *e, float x, float y) {}
 static void PushReaction(Entity *e1, Entity *e2) {
     Entity *pushed, *pusher;
 
-    if (e1->hitBox.canPush && e2->hitBox.canBePushed && e1->velocity.x != 0 && e1->velocity.y != 0) {
+    if (e1->hitBox.canPush && e2->hitBox.canBePushed && (e1->velocity.x != 0 || e1->velocity.y != 0)) {
         pushed = e2;
         pusher = e1;
-    } else if (e2->hitBox.canPush && e1->hitBox.canBePushed && e2->velocity.x != 0 && e2->velocity.y != 0) {
+    } else if (e2->hitBox.canPush && e1->hitBox.canBePushed && (e2->velocity.x != 0 || e2->velocity.y != 0)) {
         pushed = e1;
         pusher = e2;
     } else return;
@@ -249,42 +247,42 @@ static void PushReaction(Entity *e1, Entity *e2) {
     pusher->SetDestination(pusher, pusherDest.x, pusherDest.y);
 }
 
-static void BlockReaction(Entity *blocker, Entity *blocked, void (*setDestination)(Entity *blocked, float x, float y)) {
+static void BlockReaction(Entity *e1, Entity *e2) {
+    Entity *blocker, *blocked;
+
+    if (e1->hitBox.canBlock && e2->hitBox.canBeBlocked) {
+        blocker = e1;
+        blocked = e2;
+    } else if (e2->hitBox.canBlock && e1->hitBox.canBeBlocked) {
+        blocker = e2;
+        blocked = e1;
+    } else return;
+
     Rectangle blockedHitBox = blocked->hitBox.area;
     Rectangle blockerHitBox = blocker->hitBox.area;
+    
     Rectangle collision = GetCollisionRec(blockerHitBox, blockedHitBox);
 
     DIRECTIONS blockedDirection = AngleToDirection(blocked->angle);
+    DIRECTIONS collisionDirection = DetectCollisionDirection(blocked->id, blocker->id);
+    DIRECTIONS blockDirection;
 
-    switch (blockedDirection)
-    {
-        case UP:
-            setDestination(blocked, blocked->destFrame.x, blocked->destFrame.y + collision.height);
-            break;
-        case DOWN:
-            setDestination(blocked, blocked->destFrame.x, blocked->destFrame.y - collision.height);
-            break;
-        case LEFT:
-            setDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y);
-            break;
-        case RIGHT:
-            setDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y);
-            break;
-        case UP_LEFT:
-            if (collision.width > collision.height) setDestination(blocked, blocked->destFrame.x, blocked->destFrame.y + collision.height);
-            else setDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y);
-            break;
-        case UP_RIGHT:
-            if (collision.width > collision.height) setDestination(blocked, blocked->destFrame.x, blocked->destFrame.y + collision.height);
-            else setDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y);
-            break;
-        case DOWN_LEFT:
-            if (collision.width > collision.height) setDestination(blocked, blocked->destFrame.x, blocked->destFrame.y - collision.height);
-            else setDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y);
-            break;
-        case DOWN_RIGHT:
-            if (collision.width > collision.height) setDestination(blocked, blocked->destFrame.x, blocked->destFrame.y - collision.height);
-            else setDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y);
-            break;
-    } 
+    if (collisionDirection == UP && (blockedDirection == DOWN || blockedDirection == DOWN_LEFT || blockedDirection == DOWN_RIGHT)) blockDirection = UP;
+    if (collisionDirection == DOWN && (blockedDirection == UP || blockedDirection == UP_LEFT || blockedDirection == UP_RIGHT)) blockDirection = DOWN;
+    if (collisionDirection == LEFT && (blockedDirection == RIGHT || blockedDirection == UP_RIGHT || blockedDirection == DOWN_RIGHT)) blockDirection = LEFT;
+    if (collisionDirection == RIGHT && (blockedDirection == LEFT || blockedDirection == UP_LEFT || blockedDirection == DOWN_LEFT)) blockDirection = RIGHT;
+    if (collisionDirection == UP_LEFT && (blockedDirection == DOWN_RIGHT || blockedDirection == RIGHT || blockedDirection == DOWN)) blockDirection = UP_LEFT;
+    if (collisionDirection == UP_RIGHT && (blockedDirection == DOWN_LEFT || blockedDirection == LEFT || blockedDirection == DOWN)) blockDirection = UP_RIGHT;
+    if (collisionDirection == DOWN_LEFT && (blockedDirection == UP_RIGHT || blockedDirection == RIGHT || blockedDirection == UP)) blockDirection = DOWN_LEFT;
+    if (collisionDirection == DOWN_RIGHT && (blockedDirection == UP_LEFT || blockedDirection == LEFT || blockedDirection == UP)) blockDirection = DOWN_RIGHT;
+
+    if (blockDirection == UP) blocked->SetDestination(blocked, blocked->destFrame.x, blocked->destFrame.y - collision.height);
+    if (blockDirection == DOWN) blocked->SetDestination(blocked, blocked->destFrame.x, blocked->destFrame.y + collision.height);
+    if (blockDirection == LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y);
+    if (blockDirection == RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y);
+    if (blockDirection == UP_LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y - collision.height);
+    if (blockDirection == UP_RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y - collision.height);
+    if (blockDirection == DOWN_LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y + collision.height);
+    if (blockDirection == DOWN_RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y + collision.height);
+ 
 }
