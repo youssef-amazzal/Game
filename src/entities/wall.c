@@ -45,6 +45,7 @@ static const TextureData TEXTURES_DATA[] = {
             .canBlock = true,
             .canBounce = true,
         },
+        .zIndex = 1
     },
     {
         .tileTypeId = W_CORNER_BOTTOM_LEFT,
@@ -58,7 +59,8 @@ static const TextureData TEXTURES_DATA[] = {
             .color = BLUE,
             .canBlock = true,
             .canBounce = true,
-        }
+        },
+        .zIndex = 1
     },
     {
         .tileTypeId = W_CORNER_BOTTOM_RIGHT,
@@ -173,7 +175,8 @@ static const TextureData TEXTURES_DATA[] = {
             .color = BLUE,
             .canBlock = true,
             .canBounce = true,
-        }
+        },
+        .zIndex = 1
     }
 };
 
@@ -207,7 +210,6 @@ void InitWalls() {
                     wall->entity->hitBox.canBounce = textureData.hitBox.canBounce;
 
                     
-                    wall->entity->isReactive = textureData.isReactive;
                     wall->entity->zIndex = textureData.zIndex;
 
                     SetDestination(wall->entity, col * TILE_SIZE * SCALING_FACTOR, row * TILE_SIZE * SCALING_FACTOR);

@@ -8,6 +8,9 @@ typedef struct Entity
     void *child;
     bool active;
 
+    int extensionCount;
+    void **extensions;
+
     Texture2D *spriteSheet;
     Rectangle frameTexture;
 
@@ -19,7 +22,6 @@ typedef struct Entity
     Vector2 origin;
 
     HitBox hitBox;
-    bool isReactive;
     
     void (*Update)(struct Entity *e); // used normally to update the position
     void (*Animate)(struct Entity *e);

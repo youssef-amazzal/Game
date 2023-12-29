@@ -36,7 +36,6 @@ Player *GetSingletonPlayer()
         player->entity->hitBox.area = (Rectangle){16 * 3, 16 * 3, 16 * SCALING_FACTOR * 0.9, 24 * SCALING_FACTOR * 0.5};
         player->entity->hitBox.color = LIME;
         player->entity->hitBox.owner = player->entity->id;
-        player->entity->isReactive = true;
 
         player->entity->hitBox.canBeBlocked = true;
         player->entity->hitBox.canPush = true;
@@ -65,10 +64,29 @@ static void Update(Entity *e) {
     
     angle = DirectionToAngle(AngleToDirection(e->angle));
 
-    if (IsKeyDown(KEY_D)) angle                     = DirectionToAngle(RIGHT);
-    if (IsKeyDown(KEY_S)) angle                     = DirectionToAngle(DOWN);
-    if (IsKeyDown(KEY_A)) angle                     = DirectionToAngle(LEFT);
-    if (IsKeyDown(KEY_W)) angle                     = DirectionToAngle(UP);
+    static int lastPressedKey = 0;
+    bool lockKey = false;
+    if (IsKeyDown(lastPressedKey)) lockKey = true;
+
+    if (!lockKey && IsKeyDown(KEY_D) || lockKey && lastPressedKey == KEY_D) {
+        angle = DirectionToAngle(RIGHT);
+        lastPressedKey = KEY_D;
+    }
+    
+    if (!lockKey && IsKeyDown(KEY_S) || lockKey && lastPressedKey == KEY_S) {
+        angle = DirectionToAngle(DOWN);
+        lastPressedKey = KEY_S;
+    }
+
+    if (!lockKey && IsKeyDown(KEY_A) || lockKey && lastPressedKey == KEY_A) {
+        angle = DirectionToAngle(LEFT);
+        lastPressedKey = KEY_A;
+    }
+
+    if (!lockKey && IsKeyDown(KEY_W) || lockKey && lastPressedKey == KEY_W) {
+        angle = DirectionToAngle(UP);
+        lastPressedKey = KEY_W;
+    }
     // if (IsKeyDown(KEY_S) && IsKeyDown(KEY_D)) angle = DirectionToAngle(DOWN_RIGHT);
     // if (IsKeyDown(KEY_S) && IsKeyDown(KEY_A)) angle = DirectionToAngle(DOWN_LEFT);
     // if (IsKeyDown(KEY_W) && IsKeyDown(KEY_A)) angle = DirectionToAngle(UP_LEFT);
@@ -83,6 +101,9 @@ static void Update(Entity *e) {
         Vector2 dest = CalculateDestination((Vector2) {e->destFrame.x, e->destFrame.y}, e->velocity, e->angle);
 
         SetDestination(e, dest.x, dest.y);
+    } else {
+        e->velocity.x = 0;
+        e->velocity.y = 0;
     }
 }
 

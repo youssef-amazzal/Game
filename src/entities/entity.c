@@ -17,7 +17,7 @@ static void Free(Entity *e);
 static bool IsMoving(Entity *e);
 static void SetDestination(Entity *e, float x, float y);
 
-static void PushReaction(Entity *pusher, Entity *pushed, void (*setDestination)(Entity *pushed, float x, float y));
+static void PushReaction(Entity *e1, Entity *e2);
 static void BlockReaction(Entity *blocker, Entity *blocked, void (*setDestination)(Entity *blocked, float x, float y));
 
 Entity *CreateEntity() 
@@ -25,6 +25,9 @@ Entity *CreateEntity()
     Entity *e = malloc(sizeof(Entity));
     e->id = LAST_ID++;
     e->child = NULL;
+    e->active = true;
+    e->extensionCount = 0;
+    e->extensions = NULL;
     
     initHitBox(e);
     
@@ -53,6 +56,8 @@ Entity *CreateEntity()
 
 static void initHitBox(Entity *e)
 {
+    e->hitBox.type = HITBOX_RECTANGLE;
+    
     e->hitBox.owner = e->id;
     e->hitBox.isDisabled = false;
 
@@ -177,12 +182,17 @@ static void React(Entity *e) {
                     if (otherCollisionAreaSize > dominantCollisionAreaSize) dominantPushOther = other;
                 }
             }
+
+            // if (other->hitBox.canPush && this->hitBox.canBePushed) PushReaction(other, this, other->SetDestination, this->SetDestination);
+            // else if (other->hitBox.canBePushed && this->hitBox.canPush) PushReaction(this, other, this->SetDestination, other->SetDestination);
         }
     }
 
+    if (dominantPushOther != NULL) PushReaction(this, dominantPushOther);
+    
+
     if (dominantBlockOther != NULL && dominantBlockOther->hitBox.canBlock && this->hitBox.canBeBlocked) BlockReaction(dominantBlockOther, this, this->SetDestination);
     else if (dominantBlockOther != NULL && dominantBlockOther->hitBox.canBeBlocked && this->hitBox.canBlock) BlockReaction(this, dominantBlockOther, dominantBlockOther->SetDestination);
-    
 
 }
 
@@ -206,15 +216,43 @@ static bool IsMoving(Entity *e)
 
 static void SetDestination(Entity *e, float x, float y) {}
 
-static void PushReaction(Entity *pusher, Entity *pushed, void (*setDestination)(Entity *pushed, float x, float y)) {
+static void PushReaction(Entity *e1, Entity *e2) {
+    Entity *pushed, *pusher;
+
+    if (e1->hitBox.canPush && e2->hitBox.canBePushed && e1->velocity.x != 0 && e1->velocity.y != 0) {
+        pushed = e2;
+        pusher = e1;
+    } else if (e2->hitBox.canPush && e1->hitBox.canBePushed && e2->velocity.x != 0 && e2->velocity.y != 0) {
+        pushed = e1;
+        pusher = e2;
+    } else return;
+
+    Rectangle pushedHitBox = pushed->hitBox.area;
+    Rectangle pusherHitBox = pusher->hitBox.area;
     
+    if (!CheckCollisionRecs(pusherHitBox, pushedHitBox)) return;
+    
+    static int counter = 0;
+    if (counter++ % 20 == 0) printf("Entity %d is pushing entity %d with velocity (%f, %f) to the %s\n", pusher->id, pushed->id, pusher->velocity.x, pusher->velocity.y, DirectionToString(AngleToDirection(pusher->angle)));
+    
+    Vector2 pusherDest = (Vector2){pusher->destFrame.x, pusher->destFrame.y};
+    Vector2 pushedDest = (Vector2){pushed->destFrame.x, pushed->destFrame.y};
+
+    float angle = pushed->angle = pusher->angle;
+    Vector2 pushedVelocity = pushed->velocity = (Vector2){pusher->velocity.x, pusher->velocity.y};
+    Vector2 pusherVelocity = (Vector2){1 * pusher->velocity.x, 1 * pusher->velocity.y};
+
+    pushedDest = CalculateDestination(pushedDest, pushedVelocity, angle);
+    pusherDest = CalculateDestination(pusherDest, pusherVelocity, angle + PI);
+    
+    pushed->SetDestination(pushed, pushedDest.x, pushedDest.y);
+    pusher->SetDestination(pusher, pusherDest.x, pusherDest.y);
 }
 
 static void BlockReaction(Entity *blocker, Entity *blocked, void (*setDestination)(Entity *blocked, float x, float y)) {
     Rectangle blockedHitBox = blocked->hitBox.area;
     Rectangle blockerHitBox = blocker->hitBox.area;
     Rectangle collision = GetCollisionRec(blockerHitBox, blockedHitBox);
-
 
     DIRECTIONS blockedDirection = AngleToDirection(blocked->angle);
 

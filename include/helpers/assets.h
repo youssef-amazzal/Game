@@ -42,7 +42,10 @@ typedef struct TextureData {
     int tileTypeId; 
     HitBox hitBox;
     int zIndex;
-    bool isReactive;
+    bool isExtension;
+    bool isExtendable;
+    int extensionPointsCount;
+    Vector2 extensionPoints[4];
 } TextureData;
 
 /*****************
@@ -62,7 +65,6 @@ const static char *LAYERS[] = {
     "decor"
 };
 
-
 typedef struct Level {
     int num;
     int width;
@@ -72,7 +74,6 @@ typedef struct Level {
 
 #define LEVELS_COUNT 1
 extern Level LEVELS[];
-
 
 int **LoadLayerArray(Level *level, LAYERS_INDEX layer);
 void LoadLevel(int levelNum);

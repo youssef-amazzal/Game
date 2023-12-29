@@ -43,8 +43,14 @@ void SortRenderOrder();
  * HitBox
  ************************/
 
+typedef enum HITBOX_TYPE {
+    HITBOX_RECTANGLE,
+    HITBOX_CIRCLE,
+} HITBOX_TYPE;
+
 typedef struct HitBox {
     int owner;
+    HITBOX_TYPE type;
     Rectangle area;
     Color color;
 

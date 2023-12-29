@@ -3,6 +3,7 @@
 #include "entity.h"
 #include "math.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 
 /************************
@@ -25,8 +26,8 @@ void SartGameCycle() {
     {
         if (ENTITY_RECORD[i] != NULL)
         {
-            ENTITY_RECORD[i]->Render(ENTITY_RECORD[i]);
             ENTITY_RECORD[i]->React(ENTITY_RECORD[i]);
+            ENTITY_RECORD[i]->Render(ENTITY_RECORD[i]);
         }
     }
     
@@ -154,8 +155,12 @@ void SortRenderOrder()
         {
             int z = ENTITY_RECORD[j]->zIndex;
             int y = ENTITY_RECORD[j]->destFrame.y;
+
             if (z > ENTITY_RECORD[j + 1]->zIndex || (z == ENTITY_RECORD[j + 1]->zIndex && y > ENTITY_RECORD[j + 1]->destFrame.y))
             {
+                if (PLAYER_ID == ENTITY_RECORD[j]->id) PLAYER_ID = ENTITY_RECORD[j + 1]->id;
+                else if (PLAYER_ID == ENTITY_RECORD[j + 1]->id) PLAYER_ID = ENTITY_RECORD[j]->id;
+
                 Entity *temp = ENTITY_RECORD[j];
                 ENTITY_RECORD[j] = ENTITY_RECORD[j + 1];
                 ENTITY_RECORD[j + 1] = temp;

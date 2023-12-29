@@ -17,6 +17,7 @@ const TextureData TEXTURES_DATA[] = {
             .color = RED,
         },
         .zIndex = 1,
+        .isExtension = true,
     },
     {
         .tileTypeId = D_BOX_BODY ,
@@ -29,9 +30,16 @@ const TextureData TEXTURES_DATA[] = {
             },
             .color = RED,
             .canBePushed = true,
+            .canPush = true,
             .canBounce = true,
+            .canBeBlocked = true,
         },
-        .isReactive = true,
+        .isExtendable = true,
+        .extensionPointsCount = 1,
+        .extensionPoints = {
+            {0, -1}
+        },
+            
     },
 };
 
@@ -57,24 +65,65 @@ void InitDecors()
             {
                 if (layerArray[row][col] != -1) 
                 {
-                    Decor *decor = GetDecor(layerArray[row][col]);
                     TextureData textureData = TEXTURES_DATA[TypeToIndex(layerArray[row][col])];
+                    if (textureData.isExtension) continue;
+
+                    Decor *decor = GetDecor(layerArray[row][col]);
 
                     decor->entity->hitBox.area.width = textureData.hitBox.area.width * SCALING_FACTOR;
                     decor->entity->hitBox.area.height = textureData.hitBox.area.height * SCALING_FACTOR;
                     decor->entity->hitBox.color = textureData.hitBox.color;
 
                     decor->entity->hitBox.canBlock = textureData.hitBox.canBlock;
-                    decor->entity->hitBox.canBePushed = textureData.hitBox.canBePushed;
-                    decor->entity->hitBox.canBeDestroyed = textureData.hitBox.canBeDestroyed;
-                    decor->entity->hitBox.canDestroy = textureData.hitBox.canDestroy;
-                    decor->entity->hitBox.canBeCollected = textureData.hitBox.canBeCollected;
-                    decor->entity->hitBox.canBounce = textureData.hitBox.canBounce;
+                    decor->entity->hitBox.canBeBlocked = textureData.hitBox.canBeBlocked;
 
-                    decor->entity->isReactive = textureData.isReactive;                    
+                    decor->entity->hitBox.canPush = textureData.hitBox.canPush;
+                    decor->entity->hitBox.canBePushed = textureData.hitBox.canBePushed;
+
+                    decor->entity->hitBox.canDestroy = textureData.hitBox.canDestroy;
+                    decor->entity->hitBox.canBeDestroyed = textureData.hitBox.canBeDestroyed;
+
+                    decor->entity->hitBox.canCollect = textureData.hitBox.canCollect;
+                    decor->entity->hitBox.canBeCollected = textureData.hitBox.canBeCollected;
+
+                    decor->entity->hitBox.canBounce = textureData.hitBox.canBounce;
+                    decor->entity->hitBox.canBeBounced = textureData.hitBox.canBeBounced;
+
                     decor->entity->zIndex = textureData.zIndex;
 
                     SetDestination(decor->entity, col * TILE_SIZE * SCALING_FACTOR, row * TILE_SIZE * SCALING_FACTOR);
+
+                    decor->entity->extensionCount = textureData.extensionPointsCount;
+                    if (textureData.isExtendable) 
+                    {
+                        decor->entity->extensions = malloc(sizeof(Entity *) * textureData.extensionPointsCount);
+
+                        for (int i = 0; i < textureData.extensionPointsCount; i++)
+                        {
+                            int x = col + textureData.extensionPoints[i].x;
+                            int y = row + textureData.extensionPoints[i].y;
+
+                            Decor *extension = GetDecor(IndexToType(layerArray[y][x]));
+                            textureData = TEXTURES_DATA[TypeToIndex(layerArray[y][x])];
+
+                            extension->entity->hitBox.area.width = textureData.hitBox.area.width * SCALING_FACTOR;
+                            extension->entity->hitBox.area.height = textureData.hitBox.area.height * SCALING_FACTOR;
+                            extension->entity->hitBox.color = textureData.hitBox.color;
+
+                            extension->entity->hitBox.canBlock = textureData.hitBox.canBlock;
+                            extension->entity->hitBox.canBePushed = textureData.hitBox.canBePushed;
+                            extension->entity->hitBox.canBeDestroyed = textureData.hitBox.canBeDestroyed;
+                            extension->entity->hitBox.canDestroy = textureData.hitBox.canDestroy;
+                            extension->entity->hitBox.canBeCollected = textureData.hitBox.canBeCollected;
+                            extension->entity->hitBox.canBounce = textureData.hitBox.canBounce;
+
+                            extension->entity->zIndex = textureData.zIndex;
+
+                            SetDestination(extension->entity, x * TILE_SIZE * SCALING_FACTOR, y * TILE_SIZE * SCALING_FACTOR);
+
+                            decor->entity->extensions[i] = extension->entity;
+                        }
+                    }
                 }
             }
         }
@@ -125,11 +174,29 @@ static void SetDestination(Entity *decorEnt, float x, float y)
     Decor *decor = (Decor *)decorEnt->child;
     TextureData textureData = TEXTURES_DATA[TypeToIndex(decor->type)];
 
+    float deltaX = x - decorEnt->destFrame.x, deltaY = y - decorEnt->destFrame.y;
     decorEnt->destFrame.x = x;
     decorEnt->destFrame.y = y;
 
     decor->entity->hitBox.area.x = textureData.hitBox.area.x * SCALING_FACTOR + decor->entity->destFrame.x;
     decor->entity->hitBox.area.y = textureData.hitBox.area.y * SCALING_FACTOR + decor->entity->destFrame.y;
+
+    if (decor->entity->extensionCount) 
+    {
+        for (int i = 0; i < decor->entity->extensionCount; i++)
+        {
+            Entity *extension = decor->entity->extensions[i];
+            
+            float oldX = extension->destFrame.x;
+            float oldY = extension->destFrame.y;
+
+            float newX = oldX + deltaX;
+            float newY = oldY + deltaY;
+
+
+            SetDestination(extension, newX, newY);
+        }
+    }
 }
 
 static DECORS IndexToType(int index) 
