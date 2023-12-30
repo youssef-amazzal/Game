@@ -85,7 +85,9 @@ static void initHitBox(Entity *e)
  ************************/ 
 
 static void Update(Entity *e) {
-    
+    e->velocity = (Vector2){0, 0};
+    // Vector2 dest = CalculateDestination((Vector2) {e->destFrame.x, e->destFrame.y}, e->velocity, e->angle);
+    // SetDestination(e, dest.x, dest.y);
 }
 
 static void Animate(Entity *e){}
@@ -152,7 +154,6 @@ static void React(Entity *e) {
         if (other == NULL) continue;
         
         // NOTE: This condition could mean that if this collision is resolved by position changing, then the next collision resolution won't be triggered
-        Collision *collision = GetCollision(this->id, other->id);
 
         if (CheckCollisionRecs(this->hitBox.area, other->hitBox.area))
         {
@@ -160,8 +161,8 @@ static void React(Entity *e) {
                 if (dominantBlockOther == NULL) dominantBlockOther = other;
                 else 
                 {
-                    Rectangle dominantCollisionArea = GetCollision(this->id, dominantBlockOther->id)->area;
-                    Rectangle otherCollisionArea = collision->area;
+                    Rectangle dominantCollisionArea = GetCollisionRec(this->hitBox.area, dominantBlockOther->hitBox.area);
+                    Rectangle otherCollisionArea = GetCollisionRec(this->hitBox.area, other->hitBox.area);
 
                     float dominantCollisionAreaSize = dominantCollisionArea.width * dominantCollisionArea.height;
                     float otherCollisionAreaSize = otherCollisionArea.width * otherCollisionArea.height;
@@ -175,8 +176,8 @@ static void React(Entity *e) {
                 if (dominantPushOther == NULL) dominantPushOther = other;
                 else 
                 {
-                    Rectangle dominantCollisionArea = GetCollision(this->id, dominantPushOther->id)->area;
-                    Rectangle otherCollisionArea = collision->area;
+                    Rectangle dominantCollisionArea = GetCollisionRec(this->hitBox.area, dominantPushOther->hitBox.area);
+                    Rectangle otherCollisionArea = GetCollisionRec(this->hitBox.area, other->hitBox.area);
 
                     float dominantCollisionAreaSize = dominantCollisionArea.width * dominantCollisionArea.height;
                     float otherCollisionAreaSize = otherCollisionArea.width * otherCollisionArea.height;
@@ -184,12 +185,10 @@ static void React(Entity *e) {
                     if (otherCollisionAreaSize > dominantCollisionAreaSize) dominantPushOther = other;
                 }
             }
-
-            // if (other->hitBox.canPush && this->hitBox.canBePushed) PushReaction(other, this, other->SetDestination, this->SetDestination);
-            // else if (other->hitBox.canBePushed && this->hitBox.canPush) PushReaction(this, other, this->SetDestination, other->SetDestination);
         }
     }
 
+    // the order of the reactions is important for the entities that can react in multiple ways
     if (dominantPushOther != NULL) PushReaction(this, dominantPushOther);
     if (dominantBlockOther != NULL) BlockReaction(this, dominantBlockOther);
 }
@@ -217,10 +216,10 @@ static void SetDestination(Entity *e, float x, float y) {}
 static void PushReaction(Entity *e1, Entity *e2) {
     Entity *pushed, *pusher;
 
-    if (e1->hitBox.canPush && e2->hitBox.canBePushed && (e1->velocity.x != 0 || e1->velocity.y != 0)) {
+    if (e1->hitBox.canPush && e2->hitBox.canBePushed && e1->IsMoving(e1)) {
         pushed = e2;
         pusher = e1;
-    } else if (e2->hitBox.canPush && e1->hitBox.canBePushed && (e2->velocity.x != 0 || e2->velocity.y != 0)) {
+    } else if (e2->hitBox.canPush && e1->hitBox.canBePushed && e2->IsMoving(e2)) {
         pushed = e1;
         pusher = e2;
     } else return;
@@ -230,13 +229,29 @@ static void PushReaction(Entity *e1, Entity *e2) {
     
     if (!CheckCollisionRecs(pusherHitBox, pushedHitBox)) return;
     
+    Rectangle collision = GetCollisionRec(pusherHitBox, pushedHitBox);
+
+    DIRECTIONS pusherDirection = AngleToDirection(pusher->angle);
+    DIRECTIONS collisionDirection = DetectCollisionDirection(pusher->id, pushed->id);
+    DIRECTIONS pushDirection;
+
+    if (collisionDirection == UP && (pusherDirection == DOWN || pusherDirection == DOWN_LEFT || pusherDirection == DOWN_RIGHT)) pushDirection = DOWN;
+    if (collisionDirection == DOWN && (pusherDirection == UP || pusherDirection == UP_LEFT || pusherDirection == UP_RIGHT)) pushDirection = UP;
+    if (collisionDirection == LEFT && (pusherDirection == RIGHT || pusherDirection == UP_RIGHT || pusherDirection == DOWN_RIGHT)) pushDirection = RIGHT;
+    if (collisionDirection == RIGHT && (pusherDirection == LEFT || pusherDirection == UP_LEFT || pusherDirection == DOWN_LEFT)) pushDirection = LEFT;
+    if (collisionDirection == UP_LEFT && (pusherDirection == DOWN_RIGHT || pusherDirection == RIGHT || pusherDirection == DOWN)) pushDirection = DOWN_RIGHT;
+    if (collisionDirection == UP_RIGHT && (pusherDirection == DOWN_LEFT || pusherDirection == LEFT || pusherDirection == DOWN)) pushDirection = DOWN_LEFT;
+    if (collisionDirection == DOWN_LEFT && (pusherDirection == UP_RIGHT || pusherDirection == RIGHT || pusherDirection == UP)) pushDirection = UP_RIGHT;
+    if (collisionDirection == DOWN_RIGHT && (pusherDirection == UP_LEFT || pusherDirection == LEFT || pusherDirection == UP)) pushDirection = UP_LEFT;
+
     static int counter = 0;
     if (counter++ % 20 == 0) printf("Entity %d is pushing entity %d with velocity (%f, %f) to the %s\n", pusher->id, pushed->id, pusher->velocity.x, pusher->velocity.y, DirectionToString(AngleToDirection(pusher->angle)));
     
+
     Vector2 pusherDest = (Vector2){pusher->destFrame.x, pusher->destFrame.y};
     Vector2 pushedDest = (Vector2){pushed->destFrame.x, pushed->destFrame.y};
 
-    float angle = pushed->angle = pusher->angle;
+    float angle = pushed->angle = DirectionToAngle(pushDirection);
     Vector2 pushedVelocity = pushed->velocity = (Vector2){pusher->velocity.x, pusher->velocity.y};
     Vector2 pusherVelocity = (Vector2){1 * pusher->velocity.x, 1 * pusher->velocity.y};
 
@@ -250,16 +265,18 @@ static void PushReaction(Entity *e1, Entity *e2) {
 static void BlockReaction(Entity *e1, Entity *e2) {
     Entity *blocker, *blocked;
 
-    if (e1->hitBox.canBlock && e2->hitBox.canBeBlocked) {
+    if (e1->hitBox.canBlock && e2->IsMoving(e2) && e2->hitBox.canBeBlocked) {
         blocker = e1;
         blocked = e2;
-    } else if (e2->hitBox.canBlock && e1->hitBox.canBeBlocked) {
+    } else if (e2->hitBox.canBlock && e1->IsMoving(e1) && e1->hitBox.canBeBlocked) {
         blocker = e2;
         blocked = e1;
     } else return;
 
     Rectangle blockedHitBox = blocked->hitBox.area;
     Rectangle blockerHitBox = blocker->hitBox.area;
+
+    if (!CheckCollisionRecs(blockerHitBox, blockedHitBox)) return;
     
     Rectangle collision = GetCollisionRec(blockerHitBox, blockedHitBox);
 
