@@ -26,6 +26,8 @@ const char *ConstructPath(const char *str1, const char *str2);
 #define W_TILES_PER_ROW 9
 #define DECOR_SPRITESHEET_PATH  TEXTURES_DIR "/" "decor.png"
 #define D_TILES_PER_ROW 9
+#define BALL_SPRITESHEET_PATH   TEXTURES_DIR "/" "ball.png"
+#define B_TILES_PER_ROW 3
 
 #define SCALING_FACTOR 3
 #define TILE_SIZE 16
@@ -34,6 +36,7 @@ extern Texture2D *playerSpriteSheet;
 extern Texture2D *floorSpriteSheet;
 extern Texture2D *wallSpriteSheet;
 extern Texture2D *decorSpriteSheet;
+extern Texture2D *ballSpriteSheet;
 
 void LoadTextures();
 void UnloadTextures();
@@ -52,17 +55,19 @@ typedef struct TextureData {
  * LEVELS
  * **************/
 
-#define LEVEL_LAYERS_COUNT 3
+#define LEVEL_LAYERS_COUNT 4
 typedef enum LAYERS_INDEX {
     LAYER_FLOOR = 0,
     LAYER_WALLS = 1,
-    LAYER_DECOR = 2
+    LAYER_DECOR = 2,
+    LAYER_BALL = 3, 
 } LAYERS_INDEX;
 
 const static char *LAYERS[] = {
     "floor",
     "walls",
-    "decor"
+    "decor",
+    "balls"
 };
 
 typedef struct Level {

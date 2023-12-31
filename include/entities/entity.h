@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "game.h"
+#include "assets.h"
 
 typedef struct Entity
 {
@@ -41,3 +42,5 @@ extern Entity *ENTITY_RECORD[];
 extern int LAST_ID;
 
 Entity *CreateEntity();
+void SetTexturesData(Entity *e, TextureData textureData);
+void MoveHitBox(int id, TextureData textureData);

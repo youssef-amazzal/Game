@@ -19,6 +19,7 @@ static void SetDestination(Entity *e, float x, float y);
 
 static void PushReaction(Entity *e1, Entity *e2);
 static void BlockReaction(Entity *e1, Entity *e2);
+static void BounceReaction(Entity *e1, Entity *e2);
 
 Entity *CreateEntity() 
 {
@@ -100,18 +101,32 @@ static void Render(Entity *e)
 
     // Render the hitBox and the collisions
     static bool showcollision = false;
+    if (IsKeyDown(KEY_SPACE)) showcollision = true; else showcollision = false;
     
     if (showcollision) {
+        DrawRectangleLinesEx(e->destFrame, 1, (Color){255, 255, 255, 80});
+        
+        
+        DrawCircleLines(e->hitBox.circle.center.x, e->hitBox.circle.center.y, e->hitBox.circle.radius, e->hitBox.color);
         DrawRectangleLinesEx(e->hitBox.area, 1, e->hitBox.color);
+        
+        int fontSize = 10;
+        Color textColor = WHITE;
+        if (e->zIndex == 0) DrawText(TextFormat("%d", e->id), e->destFrame.x + fontSize/2, e->destFrame.y + fontSize/2, fontSize, textColor);
+        
+        if (e->hitBox.type == HITBOX_CIRCLE) return;
 
         for (int i = 0; i < e->id; i++) {
             
             Entity *this = e;
             Entity *other = ENTITY_RECORD[i];
 
+            if (other->hitBox.type == HITBOX_CIRCLE) continue; 
+
             if (other != NULL) {
-                Collision *collision = GetCollision(this->id, other->id);
-                
+                Rectangle collision = GetCollisionRec(this->hitBox.area, other->hitBox.area);
+                Rectangle collision2 = GetCollisionRec(this->destFrame, other->hitBox.area);
+
                 Color collisionColor = (Color){255, 180, 0, 120};
                 Color blockingColor = (Color){255, 0, 0, 120};
                 Color pushingColor = (Color){0, 255, 0, 120};
@@ -120,77 +135,39 @@ static void Render(Entity *e)
                 Color teleportingColor = (Color){0, 255, 255, 120};
                 Color bouncingColor = (Color){255, 255, 0, 120};
 
-                if (collision->isColliding) {
+                if (collision.width > 0 && collision.height > 0) {
+                    if (this->hitBox.canBlock && other->hitBox.canBeBlocked || other->hitBox.canBlock && this->hitBox.canBeBlocked) DrawRectangleRec(collision, blockingColor);
+                    else if (this->hitBox.canPush && other->hitBox.canBePushed || other->hitBox.canPush && this->hitBox.canBePushed) DrawRectangleRec(collision, pushingColor);
+                    else if (this->hitBox.canDestroy && other->hitBox.canBeDestroyed || other->hitBox.canDestroy && this->hitBox.canBeDestroyed) DrawRectangleRec(collision, destroyingColor);
+                    else if (this->hitBox.canCollect && other->hitBox.canBeCollected || other->hitBox.canCollect && this->hitBox.canBeCollected) DrawRectangleRec(collision, collectingColor);
+                    else if (this->hitBox.canTeleport && other->hitBox.canBeTeleported || other->hitBox.canTeleport && this->hitBox.canBeTeleported) DrawRectangleRec(collision, teleportingColor);
+                    else if (this->hitBox.canBounce && other->hitBox.canBeBounced || other->hitBox.canBounce && this->hitBox.canBeBounced) DrawRectangleRec(collision, bouncingColor);
+                    else DrawRectangleRec(collision, (Color){255, 180, 0, 255});
 
-                    if (this->hitBox.canBlock && other->hitBox.canBeBlocked || other->hitBox.canBlock && this->hitBox.canBeBlocked) DrawRectangleRec(collision->area, blockingColor);
-                    else if (this->hitBox.canPush && other->hitBox.canBePushed || other->hitBox.canPush && this->hitBox.canBePushed) DrawRectangleRec(collision->area, pushingColor);
-                    else if (this->hitBox.canDestroy && other->hitBox.canBeDestroyed || other->hitBox.canDestroy && this->hitBox.canBeDestroyed) DrawRectangleRec(collision->area, destroyingColor);
-                    else if (this->hitBox.canCollect && other->hitBox.canBeCollected || other->hitBox.canCollect && this->hitBox.canBeCollected) DrawRectangleRec(collision->area, collectingColor);
-                    else if (this->hitBox.canTeleport && other->hitBox.canBeTeleported || other->hitBox.canTeleport && this->hitBox.canBeTeleported) DrawRectangleRec(collision->area, teleportingColor);
-                    else if (this->hitBox.canBounce && other->hitBox.canBeBounced || other->hitBox.canBounce && this->hitBox.canBeBounced) DrawRectangleRec(collision->area, bouncingColor);
-                    else DrawRectangleRec(collision->area, (Color){255, 180, 0, 255});
+                    
+
                 }
             }
         }
     }
-    if (IsKeyDown(KEY_SPACE)) showcollision = true; else showcollision = false;
 }
 
 static void React(Entity *e) {
-    int othersCount = LAST_ID - e->id - 1;
-    if (othersCount == 0) return; // all collisions have been resolved
 
-    Entity *BLOCKING_COLLISIONS[othersCount];
-    Entity *PUSHING_COLLISIONS[othersCount];
+    Entity *this = e, *other = NULL;
 
-    Entity *this = e, *other = NULL, *dominantBlockOther = NULL, *dominantPushOther = NULL;
-    
-    for (int i = e->id; i < LAST_ID; i++)
+    for (int i = 0; i < LAST_ID; i++)
     {
         if (i == e->id) continue;
-
-        
         other = ENTITY_RECORD[i];
-        if (other == NULL) continue;
+
+        if (this == NULL || other == NULL) continue;
+        if (!CheckCollision(this->id, other->id)) continue;
         
-        // NOTE: This condition could mean that if this collision is resolved by position changing, then the next collision resolution won't be triggered
-
-        if (CheckCollisionRecs(this->hitBox.area, other->hitBox.area))
-        {
-            if (this->hitBox.canBlock && other->hitBox.canBeBlocked || other->hitBox.canBlock && this->hitBox.canBeBlocked) {
-                if (dominantBlockOther == NULL) dominantBlockOther = other;
-                else 
-                {
-                    Rectangle dominantCollisionArea = GetCollisionRec(this->hitBox.area, dominantBlockOther->hitBox.area);
-                    Rectangle otherCollisionArea = GetCollisionRec(this->hitBox.area, other->hitBox.area);
-
-                    float dominantCollisionAreaSize = dominantCollisionArea.width * dominantCollisionArea.height;
-                    float otherCollisionAreaSize = otherCollisionArea.width * otherCollisionArea.height;
-
-                    if (otherCollisionAreaSize > dominantCollisionAreaSize) dominantBlockOther = other;
-                }
-                
-            }
-
-            if (this->hitBox.canPush && other->hitBox.canBePushed || other->hitBox.canPush && this->hitBox.canBePushed) {
-                if (dominantPushOther == NULL) dominantPushOther = other;
-                else 
-                {
-                    Rectangle dominantCollisionArea = GetCollisionRec(this->hitBox.area, dominantPushOther->hitBox.area);
-                    Rectangle otherCollisionArea = GetCollisionRec(this->hitBox.area, other->hitBox.area);
-
-                    float dominantCollisionAreaSize = dominantCollisionArea.width * dominantCollisionArea.height;
-                    float otherCollisionAreaSize = otherCollisionArea.width * otherCollisionArea.height;
-
-                    if (otherCollisionAreaSize > dominantCollisionAreaSize) dominantPushOther = other;
-                }
-            }
-        }
+        PushReaction(this, other);
+        BlockReaction(this, other);
+        BounceReaction(this, other);
     }
-
-    // the order of the reactions is important for the entities that can react in multiple ways
-    if (dominantPushOther != NULL) PushReaction(this, dominantPushOther);
-    if (dominantBlockOther != NULL) BlockReaction(this, dominantBlockOther);
 }
 
 static void Free(Entity *e)
@@ -224,16 +201,16 @@ static void PushReaction(Entity *e1, Entity *e2) {
         pusher = e2;
     } else return;
 
+    if (pusher->hitBox.type == HITBOX_CIRCLE || pushed->hitBox.type == HITBOX_CIRCLE) return; // TODO: until i implement collision for non-rectangle shapes
+
     Rectangle pushedHitBox = pushed->hitBox.area;
     Rectangle pusherHitBox = pusher->hitBox.area;
-    
-    if (!CheckCollisionRecs(pusherHitBox, pushedHitBox)) return;
-    
+
     Rectangle collision = GetCollisionRec(pusherHitBox, pushedHitBox);
 
     DIRECTIONS pusherDirection = AngleToDirection(pusher->angle);
     DIRECTIONS collisionDirection = DetectCollisionDirection(pusher->id, pushed->id);
-    DIRECTIONS pushDirection;
+    DIRECTIONS pushDirection = -1;
 
     if (collisionDirection == UP && (pusherDirection == DOWN || pusherDirection == DOWN_LEFT || pusherDirection == DOWN_RIGHT)) pushDirection = DOWN;
     if (collisionDirection == DOWN && (pusherDirection == UP || pusherDirection == UP_LEFT || pusherDirection == UP_RIGHT)) pushDirection = UP;
@@ -244,9 +221,15 @@ static void PushReaction(Entity *e1, Entity *e2) {
     if (collisionDirection == DOWN_LEFT && (pusherDirection == UP_RIGHT || pusherDirection == RIGHT || pusherDirection == UP)) pushDirection = UP_RIGHT;
     if (collisionDirection == DOWN_RIGHT && (pusherDirection == UP_LEFT || pusherDirection == LEFT || pusherDirection == UP)) pushDirection = UP_LEFT;
 
-    static int counter = 0;
-    if (counter++ % 20 == 0) printf("Entity %d is pushing entity %d with velocity (%f, %f) to the %s\n", pusher->id, pushed->id, pusher->velocity.x, pusher->velocity.y, DirectionToString(AngleToDirection(pusher->angle)));
-    
+    if (pushDirection == -1) return;
+    // if (collisionDirection == UP) pushDirection = DOWN;
+    // if (collisionDirection == DOWN) pushDirection = UP;
+    // if (collisionDirection == LEFT) pushDirection = RIGHT;
+    // if (collisionDirection == RIGHT) pushDirection = LEFT;
+    // if (collisionDirection == UP_LEFT) pushDirection = DOWN_RIGHT;
+    // if (collisionDirection == UP_RIGHT) pushDirection = DOWN_LEFT;
+    // if (collisionDirection == DOWN_LEFT) pushDirection = UP_RIGHT;
+    // if (collisionDirection == DOWN_RIGHT) pushDirection = UP_LEFT;
 
     Vector2 pusherDest = (Vector2){pusher->destFrame.x, pusher->destFrame.y};
     Vector2 pushedDest = (Vector2){pushed->destFrame.x, pushed->destFrame.y};
@@ -263,20 +246,20 @@ static void PushReaction(Entity *e1, Entity *e2) {
 }
 
 static void BlockReaction(Entity *e1, Entity *e2) {
+    if (e1->hitBox.canPush && e2->hitBox.canBePushed || e2->hitBox.canPush && e1->hitBox.canBePushed) return; // pushable reactions are handled in PushReaction 
+    
+    
     Entity *blocker, *blocked;
 
-    if (e1->hitBox.canBlock && e2->IsMoving(e2) && e2->hitBox.canBeBlocked) {
+    if (e1->hitBox.canBlock && e2->hitBox.canBeBlocked && !e1->IsMoving(e1)) {
         blocker = e1;
         blocked = e2;
-    } else if (e2->hitBox.canBlock && e1->IsMoving(e1) && e1->hitBox.canBeBlocked) {
-        blocker = e2;
-        blocked = e1;
     } else return;
+
+    if (blocker->hitBox.type == HITBOX_CIRCLE || blocked->hitBox.type == HITBOX_CIRCLE) return; // TODO: until i implement collision for non-rectangle shapes
 
     Rectangle blockedHitBox = blocked->hitBox.area;
     Rectangle blockerHitBox = blocker->hitBox.area;
-
-    if (!CheckCollisionRecs(blockerHitBox, blockedHitBox)) return;
     
     Rectangle collision = GetCollisionRec(blockerHitBox, blockedHitBox);
 
@@ -284,22 +267,107 @@ static void BlockReaction(Entity *e1, Entity *e2) {
     DIRECTIONS collisionDirection = DetectCollisionDirection(blocked->id, blocker->id);
     DIRECTIONS blockDirection;
 
-    if (collisionDirection == UP && (blockedDirection == DOWN || blockedDirection == DOWN_LEFT || blockedDirection == DOWN_RIGHT)) blockDirection = UP;
-    if (collisionDirection == DOWN && (blockedDirection == UP || blockedDirection == UP_LEFT || blockedDirection == UP_RIGHT)) blockDirection = DOWN;
-    if (collisionDirection == LEFT && (blockedDirection == RIGHT || blockedDirection == UP_RIGHT || blockedDirection == DOWN_RIGHT)) blockDirection = LEFT;
-    if (collisionDirection == RIGHT && (blockedDirection == LEFT || blockedDirection == UP_LEFT || blockedDirection == DOWN_LEFT)) blockDirection = RIGHT;
-    if (collisionDirection == UP_LEFT && (blockedDirection == DOWN_RIGHT || blockedDirection == RIGHT || blockedDirection == DOWN)) blockDirection = UP_LEFT;
-    if (collisionDirection == UP_RIGHT && (blockedDirection == DOWN_LEFT || blockedDirection == LEFT || blockedDirection == DOWN)) blockDirection = UP_RIGHT;
-    if (collisionDirection == DOWN_LEFT && (blockedDirection == UP_RIGHT || blockedDirection == RIGHT || blockedDirection == UP)) blockDirection = DOWN_LEFT;
-    if (collisionDirection == DOWN_RIGHT && (blockedDirection == UP_LEFT || blockedDirection == LEFT || blockedDirection == UP)) blockDirection = DOWN_RIGHT;
+    // if (collisionDirection == UP && (blockedDirection == DOWN || blockedDirection == DOWN_LEFT || blockedDirection == DOWN_RIGHT)) blockDirection = UP;
+    // if (collisionDirection == DOWN && (blockedDirection == UP || blockedDirection == UP_LEFT || blockedDirection == UP_RIGHT)) blockDirection = DOWN;
+    // if (collisionDirection == LEFT && (blockedDirection == RIGHT || blockedDirection == UP_RIGHT || blockedDirection == DOWN_RIGHT)) blockDirection = LEFT;
+    // if (collisionDirection == RIGHT && (blockedDirection == LEFT || blockedDirection == UP_LEFT || blockedDirection == DOWN_LEFT)) blockDirection = RIGHT;
+    // if (collisionDirection == UP_LEFT && (blockedDirection == DOWN_RIGHT || blockedDirection == RIGHT || blockedDirection == DOWN)) blockDirection = UP_LEFT;
+    // if (collisionDirection == UP_RIGHT && (blockedDirection == DOWN_LEFT || blockedDirection == LEFT || blockedDirection == DOWN)) blockDirection = UP_RIGHT;
+    // if (collisionDirection == DOWN_LEFT && (blockedDirection == UP_RIGHT || blockedDirection == RIGHT || blockedDirection == UP)) blockDirection = DOWN_LEFT;
+    // if (collisionDirection == DOWN_RIGHT && (blockedDirection == UP_LEFT || blockedDirection == LEFT || blockedDirection == UP)) blockDirection = DOWN_RIGHT;
 
-    if (blockDirection == UP) blocked->SetDestination(blocked, blocked->destFrame.x, blocked->destFrame.y - collision.height);
-    if (blockDirection == DOWN) blocked->SetDestination(blocked, blocked->destFrame.x, blocked->destFrame.y + collision.height);
-    if (blockDirection == LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y);
-    if (blockDirection == RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y);
-    if (blockDirection == UP_LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y - collision.height);
-    if (blockDirection == UP_RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y - collision.height);
-    if (blockDirection == DOWN_LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y + collision.height);
-    if (blockDirection == DOWN_RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y + collision.height);
+    if (collisionDirection == UP) blocked->SetDestination(blocked, blocked->destFrame.x, blocked->destFrame.y - collision.height);
+    if (collisionDirection == DOWN) blocked->SetDestination(blocked, blocked->destFrame.x, blocked->destFrame.y + collision.height);
+    if (collisionDirection == LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y);
+    if (collisionDirection == RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y);
+    if (collisionDirection == UP_LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y - collision.height);
+    if (collisionDirection == UP_RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y - collision.height);
+    if (collisionDirection == DOWN_LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y + collision.height);
+    if (collisionDirection == DOWN_RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y + collision.height);
  
+}
+
+static void BounceReaction(Entity *e1, Entity *e2) {
+    Entity *bouncer, *bounced;
+
+    if (e1->hitBox.canBounce && e2->hitBox.canBeBounced) {
+        bouncer = e1; // The one that is collided into
+        bounced = e2; // The moving one that should bounce
+    } else if (e2->hitBox.canBounce && e1->hitBox.canBeBounced) {
+        bouncer = e2;
+        bounced = e1;
+    } else return;
+
+    bool bouncerIsCircle = bouncer->hitBox.type == HITBOX_CIRCLE;
+    bool bouncedIsCircle = bounced->hitBox.type == HITBOX_CIRCLE;
+
+    Rectangle collision = GetCollisionRec(bounced->destFrame, bouncer->hitBox.area);
+    DIRECTIONS collisionDirection = DetectCollisionDirection(bounced->id, bouncer->id);
+
+    if (bouncedIsCircle && !bouncerIsCircle) {
+        if (collisionDirection == UP) bounced->SetDestination(bounced, bounced->destFrame.x, bounced->destFrame.y - collision.height);
+        if (collisionDirection == DOWN) bounced->SetDestination(bounced, bounced->destFrame.x, bounced->destFrame.y + collision.height);
+        if (collisionDirection == LEFT) bounced->SetDestination(bounced, bounced->destFrame.x - collision.width, bounced->destFrame.y);
+        if (collisionDirection == RIGHT) bounced->SetDestination(bounced, bounced->destFrame.x + collision.width, bounced->destFrame.y);
+        if (collisionDirection == UP_LEFT) bounced->SetDestination(bounced, bounced->destFrame.x - collision.width, bounced->destFrame.y - collision.height);
+        if (collisionDirection == UP_RIGHT) bounced->SetDestination(bounced, bounced->destFrame.x + collision.width, bounced->destFrame.y - collision.height);
+        if (collisionDirection == DOWN_LEFT) bounced->SetDestination(bounced, bounced->destFrame.x - collision.width, bounced->destFrame.y + collision.height);
+        
+
+        bounced->angle += 90;
+    }
+    
+    
+}
+/************************
+ * Public Funcs
+ ************************/
+
+void SetTexturesData(Entity *e, TextureData textureData) {
+
+    HitBox hitBox = e->hitBox;
+    hitBox.type = textureData.hitBox.type;
+    
+    if (textureData.hitBox.type == HITBOX_CIRCLE) e->hitBox.circle.radius = textureData.hitBox.circle.radius * SCALING_FACTOR;
+    if (textureData.hitBox.type == HITBOX_RECTANGLE) {
+        hitBox.area.width = textureData.hitBox.area.width * SCALING_FACTOR;
+        hitBox.area.height = textureData.hitBox.area.height * SCALING_FACTOR;
+    }
+
+    e->hitBox.color = textureData.hitBox.color;
+    e->hitBox.isDisabled = textureData.hitBox.isDisabled;
+    e->zIndex = textureData.zIndex;
+
+    e->hitBox.canBlock = textureData.hitBox.canBlock;
+    e->hitBox.canBeBlocked = textureData.hitBox.canBeBlocked;
+
+    e->hitBox.canPush = textureData.hitBox.canPush;
+    e->hitBox.canBePushed = textureData.hitBox.canBePushed;
+
+    e->hitBox.canDestroy = textureData.hitBox.canDestroy;
+    e->hitBox.canBeDestroyed = textureData.hitBox.canBeDestroyed;
+
+    e->hitBox.canCollect = textureData.hitBox.canCollect;
+    e->hitBox.canBeCollected = textureData.hitBox.canBeCollected;
+
+    e->hitBox.canBounce = textureData.hitBox.canBounce;
+    e->hitBox.canBeBounced = textureData.hitBox.canBeBounced;
+
+    e->hitBox.canTeleport = textureData.hitBox.canTeleport;
+    e->hitBox.canBeTeleported = textureData.hitBox.canBeTeleported;
+}
+
+void MoveHitBox(int id, TextureData textureData)
+{
+    Entity *entity = ENTITY_RECORD[id];
+    switch(entity->hitBox.type) {
+        case HITBOX_RECTANGLE:
+            entity->hitBox.area.x = textureData.hitBox.area.x * SCALING_FACTOR + entity->destFrame.x;
+            entity->hitBox.area.y = textureData.hitBox.area.y * SCALING_FACTOR + entity->destFrame.y;
+            break;
+        case HITBOX_CIRCLE:
+            entity->hitBox.circle.center.x = textureData.hitBox.circle.center.x * SCALING_FACTOR + entity->destFrame.x;
+            entity->hitBox.circle.center.y = textureData.hitBox.circle.center.y * SCALING_FACTOR + entity->destFrame.y;
+            break;
+    }
 }

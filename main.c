@@ -6,6 +6,7 @@
 #include "floor.h"
 #include "wall.h"
 #include "decor.h"
+#include "ball.h"
 
 int screenWidth = 960;
 int screenHeight = 480;
@@ -35,8 +36,8 @@ void initGame() {
     InitFloors();
     InitWalls();
     InitDecors();
+    InitBalls();
     Player *player = GetSingletonPlayer(); //initialize player
-
 }
 
 void startGame() {

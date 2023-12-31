@@ -34,6 +34,7 @@ Player *GetSingletonPlayer()
         player->entity->frameTexture = (Rectangle){0, 24, 16, 24};
         
         player->entity->destFrame = (Rectangle){16 * 3, 16 * 3, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
+
         player->entity->hitBox.area = (Rectangle){16 * 3, 16 * 3, 16 * SCALING_FACTOR * 0.9, 24 * SCALING_FACTOR * 0.5};
         player->entity->hitBox.color = LIME;
         player->entity->hitBox.owner = player->entity->id;

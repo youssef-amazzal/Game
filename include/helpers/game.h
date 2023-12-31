@@ -48,10 +48,16 @@ typedef enum HITBOX_TYPE {
     HITBOX_CIRCLE,
 } HITBOX_TYPE;
 
+typedef struct Circle {
+    Vector2 center;
+    float radius;
+} Circle;
+
 typedef struct HitBox {
     int owner;
     HITBOX_TYPE type;
     Rectangle area;
+    Circle circle;
     Color color;
 
     bool isDisabled;
@@ -76,13 +82,5 @@ typedef struct HitBox {
 
 } HitBox;
 
-typedef struct Collision {
-    Rectangle area;
-    bool isColliding;
-} Collision;
-
-extern Collision COLLISION_RECORD[MAX_ENTITIES][MAX_ENTITIES];
-Collision *GetCollision(int id1, int id2);
-void DetectHitBoxs();
 DIRECTIONS DetectCollisionDirection(int colliderId, int collidedId);
-
+bool CheckCollision(int e1, int e2);

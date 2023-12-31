@@ -21,7 +21,9 @@ void SartGameCycle() {
     }
     
     SortRenderOrder();
-    DetectHitBoxs();
+    // WORKAROUND: player colision should be handled first cause he gives his velocity 
+    // to other entities but the entities with lower id reset it to 0 before being able to use it
+    ENTITY_RECORD[PLAYER_ID]->React(ENTITY_RECORD[PLAYER_ID]);  
 
     for (int i = 0; i < LAST_ID; i++)
     {
@@ -106,6 +108,7 @@ float DirectionToAngle(DIRECTIONS direction) {
             return 0;
     };
 }
+
 DIRECTIONS AngleToDirection(float angle) {
     if (angle >= 0 && angle < PI / 8) {
         return RIGHT;
@@ -143,7 +146,6 @@ DIRECTIONS AngleToDirection(float angle) {
 Vector2 CalculateDestination(Vector2 position, Vector2 velocity, float angle) {
     float x = position.x + velocity.x * cos(angle) * GetFrameTime();
     float y = position.y + velocity.y * sin(angle) * GetFrameTime();
-
     return (Vector2) { x, y };
 }
 
@@ -164,7 +166,7 @@ void SortRenderOrder()
             {
                 if (PLAYER_ID == ENTITY_RECORD[j]->id) PLAYER_ID = ENTITY_RECORD[j + 1]->id;
                 else if (PLAYER_ID == ENTITY_RECORD[j + 1]->id) PLAYER_ID = ENTITY_RECORD[j]->id;
-
+                
                 Entity *temp = ENTITY_RECORD[j];
                 ENTITY_RECORD[j] = ENTITY_RECORD[j + 1];
                 ENTITY_RECORD[j + 1] = temp;
@@ -179,18 +181,19 @@ void SortRenderOrder()
 /************************
  * HitBox Funcs
  ************************/
-Collision COLLISION_RECORD[MAX_ENTITIES][MAX_ENTITIES];
 
 DIRECTIONS DetectCollisionDirection(int colliderId, int collidedId)
 {
     Entity *collider = ENTITY_RECORD[colliderId];
     Entity *collided = ENTITY_RECORD[collidedId];
 
-    if (!CheckCollisionRecs(collider->hitBox.area, collided->hitBox.area)) return DEFAULT;
+    if (!CheckCollision(collider->id, collided->id)) return -1;
 
-    Rectangle collisionArea = GetCollisionRec(collider->hitBox.area, collided->hitBox.area);
+    // using the destination frame to calculate the collision area save me the trouble
+    // when the hitbox is a circle
+    Rectangle collisionArea = GetCollisionRec(collider->destFrame, collided->destFrame);
     
-    DIRECTIONS direction = DEFAULT;
+    DIRECTIONS direction = -1;
 
     if (collisionArea.width > collisionArea.height) {
         if (collider->destFrame.y > collided->destFrame.y) {
@@ -227,30 +230,14 @@ DIRECTIONS DetectCollisionDirection(int colliderId, int collidedId)
     return direction;
 }
 
-void DetectHitBoxs()
+bool CheckCollision(int e1, int e2)
 {
-   for (int i = 0; i < LAST_ID; i++)
-    {
-        for (int j = i + 1; j < LAST_ID; j++)
-        {
-            Collision *collision = GetCollision(i, j);
-            collision->isColliding = false;
-
-            if (ENTITY_RECORD[i] != NULL && ENTITY_RECORD[j] != NULL)
-            {
-                if (CheckCollisionRecs(ENTITY_RECORD[i]->hitBox.area, ENTITY_RECORD[j]->hitBox.area))
-                {
-                    collision->area = GetCollisionRec(ENTITY_RECORD[i]->hitBox.area, ENTITY_RECORD[j]->hitBox.area);
-                    collision->isColliding = true;
-                }
-            }
-        }
-    }
+    Entity *entity1 = ENTITY_RECORD[e1];
+    Entity *entity2 = ENTITY_RECORD[e2];
+    
+    if (entity1->hitBox.type == HITBOX_RECTANGLE && entity2->hitBox.type == HITBOX_RECTANGLE) return CheckCollisionRecs(entity1->hitBox.area, entity2->hitBox.area);
+    if (entity1->hitBox.type == HITBOX_CIRCLE && entity2->hitBox.type == HITBOX_CIRCLE) return CheckCollisionCircles(entity1->hitBox.circle.center, entity1->hitBox.circle.radius, entity2->hitBox.circle.center, entity2->hitBox.circle.radius);
+    if (entity1->hitBox.type == HITBOX_RECTANGLE && entity2->hitBox.type == HITBOX_CIRCLE) return CheckCollisionCircleRec(entity2->hitBox.circle.center, entity2->hitBox.circle.radius, entity1->hitBox.area);
+    if (entity1->hitBox.type == HITBOX_CIRCLE && entity2->hitBox.type == HITBOX_RECTANGLE) return CheckCollisionCircleRec(entity1->hitBox.circle.center, entity1->hitBox.circle.radius, entity2->hitBox.area);
 }
-Collision *GetCollision(int id1, int id2)
-{
-    int minId = id1 < id2 ? id1 : id2;
-    int maxId = id1 > id2 ? id1 : id2;
 
-    return &COLLISION_RECORD[minId][maxId];
-}
