@@ -2,6 +2,9 @@
 #include "raylib.h"
 
 #define FRAME_RATE 120
+#define SCREEN_WIDTH 960
+#define SCREEN_HEIGHT 480
+extern int TIMER;
 
 /************************
  * Entities management

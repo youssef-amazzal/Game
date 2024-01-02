@@ -5,11 +5,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+int TIMER = 30 * FRAME_RATE;
+bool GAME_OVER = false;
 
 /************************
  * Game Cycle Funcs
  ************************/
 void SartGameCycle() {
+
+    if (GAME_OVER) {
+        DrawText("GAME OVER", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 50, 50, WHITE);
+        return;
+    }
+
     for (int i = 0; i < LAST_ID; i++)
     {
         if (ENTITY_RECORD[i] != NULL)
@@ -33,7 +41,10 @@ void SartGameCycle() {
             ENTITY_RECORD[i]->Render(ENTITY_RECORD[i]);
         }
     }
-    
+
+    DrawText(TextFormat("TIMER: %d", TIMER / FRAME_RATE), 10, 10, 20, WHITE);
+    TIMER -= 1;
+    if (TIMER <= 0) GAME_OVER = true;
 }
 
 void StopGameCycle()

@@ -8,9 +8,6 @@
 #include "decor.h"
 #include "ball.h"
 
-int screenWidth = 960;
-int screenHeight = 480;
-
 void initGame();
 void startGame();
 void exitGame();
@@ -27,7 +24,7 @@ int main()
 }
 
 void initGame() {
-    InitWindow(screenWidth, screenHeight, "Snoopy Game");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Snoopy Game");
     SetTargetFPS(FRAME_RATE);
     
     LoadTextures();
