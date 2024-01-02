@@ -108,7 +108,6 @@ float DirectionToAngle(DIRECTIONS direction) {
             return 0;
     };
 }
-
 DIRECTIONS AngleToDirection(float angle) {
     if (angle >= 0 && angle < PI / 8) {
         return RIGHT;
@@ -142,7 +141,6 @@ DIRECTIONS AngleToDirection(float angle) {
         return UP_RIGHT;
     }
 }
-
 Vector2 CalculateDestination(Vector2 position, Vector2 velocity, float angle) {
     float x = position.x + velocity.x * cos(angle) * GetFrameTime();
     float y = position.y + velocity.y * sin(angle) * GetFrameTime();

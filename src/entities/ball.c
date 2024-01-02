@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define BALL_SPEED FRAME_RATE * 3
+
 static const TextureData TEXTURES_DATA[] = {
     {
         .tileTypeId = B_GRAY, 
@@ -24,6 +26,8 @@ static const TextureData TEXTURES_DATA[] = {
             },
             .color = PURPLE,
             .canBeBounced = true,
+            .canBounce = true,
+            .canBeBlocked = true,
         },
     },
     {
@@ -45,6 +49,8 @@ static const TextureData TEXTURES_DATA[] = {
             },
             .color = PURPLE,
             .canBeBounced = true,
+            .canBounce = true,
+            .canBeBlocked = true,
         },
     },
 };
@@ -56,7 +62,7 @@ static void SetDestination(Entity *ballEnt, float x, float y);
 static BALLS IndexToType(int index);
 static BALLS_INDEX TypeToIndex(BALLS type);
 
-void InitBalls() 
+void InitBalls()
 {
     static bool initialized = false;
     if (!initialized) 
@@ -82,6 +88,9 @@ void InitBalls()
                     ball->entity->hitBox.color = textureData.hitBox.color;
 
                     ball->entity->hitBox.canBeBounced = textureData.hitBox.canBeBounced;
+                    ball->entity->hitBox.canBounce = textureData.hitBox.canBounce;
+
+                    ball->entity->hitBox.canBeBlocked = textureData.hitBox.canBeBlocked;
 
                     ball->entity->zIndex = textureData.zIndex;
 
@@ -131,8 +140,8 @@ static Ball *GetBall(BALLS type)
     ball->entity->spriteSheet = ballSpriteSheet;
     ball->entity->frameTexture = (Rectangle){TILE_SIZE * 2 * (ball->type % B_TILES_PER_ROW), TILE_SIZE * 2 * (ball->type / B_TILES_PER_ROW), TILE_SIZE * 2, TILE_SIZE * 2};
 
-    ball->entity->velocity = (Vector2){FRAME_RATE * 2, FRAME_RATE * 2};
-    ball->entity->angle = (float)rand() / RAND_MAX * 2 * PI;
+    ball->entity->velocity = (Vector2){BALL_SPEED, BALL_SPEED};
+    ball->entity->angle = (float)rand() / RAND_MAX * (PI / 2);
 
     ball->entity->Update = Update;
     ball->entity->Free = Free;

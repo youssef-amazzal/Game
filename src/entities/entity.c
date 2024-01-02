@@ -212,24 +212,23 @@ static void PushReaction(Entity *e1, Entity *e2) {
     DIRECTIONS collisionDirection = DetectCollisionDirection(pusher->id, pushed->id);
     DIRECTIONS pushDirection = -1;
 
-    if (collisionDirection == UP && (pusherDirection == DOWN || pusherDirection == DOWN_LEFT || pusherDirection == DOWN_RIGHT)) pushDirection = DOWN;
-    if (collisionDirection == DOWN && (pusherDirection == UP || pusherDirection == UP_LEFT || pusherDirection == UP_RIGHT)) pushDirection = UP;
-    if (collisionDirection == LEFT && (pusherDirection == RIGHT || pusherDirection == UP_RIGHT || pusherDirection == DOWN_RIGHT)) pushDirection = RIGHT;
-    if (collisionDirection == RIGHT && (pusherDirection == LEFT || pusherDirection == UP_LEFT || pusherDirection == DOWN_LEFT)) pushDirection = LEFT;
-    if (collisionDirection == UP_LEFT && (pusherDirection == DOWN_RIGHT || pusherDirection == RIGHT || pusherDirection == DOWN)) pushDirection = DOWN_RIGHT;
-    if (collisionDirection == UP_RIGHT && (pusherDirection == DOWN_LEFT || pusherDirection == LEFT || pusherDirection == DOWN)) pushDirection = DOWN_LEFT;
-    if (collisionDirection == DOWN_LEFT && (pusherDirection == UP_RIGHT || pusherDirection == RIGHT || pusherDirection == UP)) pushDirection = UP_RIGHT;
-    if (collisionDirection == DOWN_RIGHT && (pusherDirection == UP_LEFT || pusherDirection == LEFT || pusherDirection == UP)) pushDirection = UP_LEFT;
+    // if (collisionDirection == UP && (pusherDirection == DOWN || pusherDirection == DOWN_LEFT || pusherDirection == DOWN_RIGHT)) pushDirection = DOWN;
+    // if (collisionDirection == DOWN && (pusherDirection == UP || pusherDirection == UP_LEFT || pusherDirection == UP_RIGHT)) pushDirection = UP;
+    // if (collisionDirection == LEFT && (pusherDirection == RIGHT || pusherDirection == UP_RIGHT || pusherDirection == DOWN_RIGHT)) pushDirection = RIGHT;
+    // if (collisionDirection == RIGHT && (pusherDirection == LEFT || pusherDirection == UP_LEFT || pusherDirection == DOWN_LEFT)) pushDirection = LEFT;
+    // if (collisionDirection == UP_LEFT && (pusherDirection == DOWN_RIGHT || pusherDirection == RIGHT || pusherDirection == DOWN)) pushDirection = DOWN_RIGHT;
+    // if (collisionDirection == UP_RIGHT && (pusherDirection == DOWN_LEFT || pusherDirection == LEFT || pusherDirection == DOWN)) pushDirection = DOWN_LEFT;
+    // if (collisionDirection == DOWN_LEFT && (pusherDirection == UP_RIGHT || pusherDirection == RIGHT || pusherDirection == UP)) pushDirection = UP_RIGHT;
+    // if (collisionDirection == DOWN_RIGHT && (pusherDirection == UP_LEFT || pusherDirection == LEFT || pusherDirection == UP)) pushDirection = UP_LEFT;
 
-    if (pushDirection == -1) return;
-    // if (collisionDirection == UP) pushDirection = DOWN;
-    // if (collisionDirection == DOWN) pushDirection = UP;
-    // if (collisionDirection == LEFT) pushDirection = RIGHT;
-    // if (collisionDirection == RIGHT) pushDirection = LEFT;
-    // if (collisionDirection == UP_LEFT) pushDirection = DOWN_RIGHT;
-    // if (collisionDirection == UP_RIGHT) pushDirection = DOWN_LEFT;
-    // if (collisionDirection == DOWN_LEFT) pushDirection = UP_RIGHT;
-    // if (collisionDirection == DOWN_RIGHT) pushDirection = UP_LEFT;
+    if (pusherDirection == UP) pushDirection = UP;
+    if (pusherDirection == DOWN) pushDirection = DOWN;
+    if (pusherDirection == LEFT) pushDirection = LEFT;
+    if (pusherDirection == RIGHT) pushDirection = RIGHT;
+    if (pusherDirection == UP_LEFT) pushDirection = UP_LEFT;
+    if (pusherDirection == UP_RIGHT) pushDirection = UP_RIGHT;
+    if (pusherDirection == DOWN_LEFT) pushDirection = DOWN_LEFT;
+    if (pusherDirection == DOWN_RIGHT) pushDirection = DOWN_RIGHT;
 
     Vector2 pusherDest = (Vector2){pusher->destFrame.x, pusher->destFrame.y};
     Vector2 pushedDest = (Vector2){pushed->destFrame.x, pushed->destFrame.y};
@@ -248,43 +247,30 @@ static void PushReaction(Entity *e1, Entity *e2) {
 static void BlockReaction(Entity *e1, Entity *e2) {
     if (e1->hitBox.canPush && e2->hitBox.canBePushed || e2->hitBox.canPush && e1->hitBox.canBePushed) return; // pushable reactions are handled in PushReaction 
     
-    
     Entity *blocker, *blocked;
 
     if (e1->hitBox.canBlock && e2->hitBox.canBeBlocked && !e1->IsMoving(e1)) {
         blocker = e1;
         blocked = e2;
+    } else if (e2->hitBox.canBlock && e1->hitBox.canBeBlocked && !e2->IsMoving(e2)) {
+        blocker = e2;
+        blocked = e1;
     } else return;
-
-    if (blocker->hitBox.type == HITBOX_CIRCLE || blocked->hitBox.type == HITBOX_CIRCLE) return; // TODO: until i implement collision for non-rectangle shapes
-
-    Rectangle blockedHitBox = blocked->hitBox.area;
-    Rectangle blockerHitBox = blocker->hitBox.area;
     
+    Rectangle blockedHitBox = (blocked->hitBox.type == HITBOX_CIRCLE) ? blocked->destFrame : blocked->hitBox.area;
+    Rectangle blockerHitBox = (blocker->hitBox.type == HITBOX_CIRCLE) ? blocker->destFrame : blocker->hitBox.area;
+
     Rectangle collision = GetCollisionRec(blockerHitBox, blockedHitBox);
-
     DIRECTIONS blockedDirection = AngleToDirection(blocked->angle);
-    DIRECTIONS collisionDirection = DetectCollisionDirection(blocked->id, blocker->id);
-    DIRECTIONS blockDirection;
 
-    // if (collisionDirection == UP && (blockedDirection == DOWN || blockedDirection == DOWN_LEFT || blockedDirection == DOWN_RIGHT)) blockDirection = UP;
-    // if (collisionDirection == DOWN && (blockedDirection == UP || blockedDirection == UP_LEFT || blockedDirection == UP_RIGHT)) blockDirection = DOWN;
-    // if (collisionDirection == LEFT && (blockedDirection == RIGHT || blockedDirection == UP_RIGHT || blockedDirection == DOWN_RIGHT)) blockDirection = LEFT;
-    // if (collisionDirection == RIGHT && (blockedDirection == LEFT || blockedDirection == UP_LEFT || blockedDirection == DOWN_LEFT)) blockDirection = RIGHT;
-    // if (collisionDirection == UP_LEFT && (blockedDirection == DOWN_RIGHT || blockedDirection == RIGHT || blockedDirection == DOWN)) blockDirection = UP_LEFT;
-    // if (collisionDirection == UP_RIGHT && (blockedDirection == DOWN_LEFT || blockedDirection == LEFT || blockedDirection == DOWN)) blockDirection = UP_RIGHT;
-    // if (collisionDirection == DOWN_LEFT && (blockedDirection == UP_RIGHT || blockedDirection == RIGHT || blockedDirection == UP)) blockDirection = DOWN_LEFT;
-    // if (collisionDirection == DOWN_RIGHT && (blockedDirection == UP_LEFT || blockedDirection == LEFT || blockedDirection == UP)) blockDirection = DOWN_RIGHT;
-
-    if (collisionDirection == UP) blocked->SetDestination(blocked, blocked->destFrame.x, blocked->destFrame.y - collision.height);
-    if (collisionDirection == DOWN) blocked->SetDestination(blocked, blocked->destFrame.x, blocked->destFrame.y + collision.height);
-    if (collisionDirection == LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y);
-    if (collisionDirection == RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y);
-    if (collisionDirection == UP_LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y - collision.height);
-    if (collisionDirection == UP_RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y - collision.height);
-    if (collisionDirection == DOWN_LEFT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y + collision.height);
-    if (collisionDirection == DOWN_RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y + collision.height);
- 
+    if (blockedDirection == DOWN) blocked->SetDestination(blocked, blocked->destFrame.x, blocked->destFrame.y - collision.height);
+    if (blockedDirection == UP) blocked->SetDestination(blocked, blocked->destFrame.x, blocked->destFrame.y + collision.height);
+    if (blockedDirection == RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y);
+    if (blockedDirection == LEFT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y);
+    if (blockedDirection == DOWN_RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y - collision.height);
+    if (blockedDirection == DOWN_LEFT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y - collision.height);
+    if (blockedDirection == UP_RIGHT) blocked->SetDestination(blocked, blocked->destFrame.x - collision.width, blocked->destFrame.y + collision.height);
+    if (blockedDirection == UP_LEFT) blocked->SetDestination(blocked, blocked->destFrame.x + collision.width, blocked->destFrame.y + collision.height);
 }
 
 static void BounceReaction(Entity *e1, Entity *e2) {
@@ -298,26 +284,7 @@ static void BounceReaction(Entity *e1, Entity *e2) {
         bounced = e1;
     } else return;
 
-    bool bouncerIsCircle = bouncer->hitBox.type == HITBOX_CIRCLE;
-    bool bouncedIsCircle = bounced->hitBox.type == HITBOX_CIRCLE;
-
-    Rectangle collision = GetCollisionRec(bounced->destFrame, bouncer->hitBox.area);
-    DIRECTIONS collisionDirection = DetectCollisionDirection(bounced->id, bouncer->id);
-
-    if (bouncedIsCircle && !bouncerIsCircle) {
-        if (collisionDirection == UP) bounced->SetDestination(bounced, bounced->destFrame.x, bounced->destFrame.y - collision.height);
-        if (collisionDirection == DOWN) bounced->SetDestination(bounced, bounced->destFrame.x, bounced->destFrame.y + collision.height);
-        if (collisionDirection == LEFT) bounced->SetDestination(bounced, bounced->destFrame.x - collision.width, bounced->destFrame.y);
-        if (collisionDirection == RIGHT) bounced->SetDestination(bounced, bounced->destFrame.x + collision.width, bounced->destFrame.y);
-        if (collisionDirection == UP_LEFT) bounced->SetDestination(bounced, bounced->destFrame.x - collision.width, bounced->destFrame.y - collision.height);
-        if (collisionDirection == UP_RIGHT) bounced->SetDestination(bounced, bounced->destFrame.x + collision.width, bounced->destFrame.y - collision.height);
-        if (collisionDirection == DOWN_LEFT) bounced->SetDestination(bounced, bounced->destFrame.x - collision.width, bounced->destFrame.y + collision.height);
-        
-
-        bounced->angle += 90;
-    }
-    
-    
+    bounced->angle += 10;
 }
 /************************
  * Public Funcs
