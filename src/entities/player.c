@@ -21,38 +21,32 @@ static void handleKeyboardInputs(Entity *e);
 
 Player *GetSingletonPlayer()
 {
-    static bool initialized = false;
-    static Player *player;
+    Player *player;
 
-    if (!initialized)
-    {
-        player = malloc(sizeof(Player));
-        player->entity = CreateEntity();
-        player->entity->child = player;
+    player = malloc(sizeof(Player));
+    player->entity = CreateEntity();
+    player->entity->child = player;
 
-        player->entity->spriteSheet = playerSpriteSheet;
-        player->entity->frameTexture = (Rectangle){0, 24, 16, 24};
-        
-        player->entity->destFrame = (Rectangle){16 * 3, 16 * 3, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
+    player->entity->spriteSheet = playerSpriteSheet;
+    player->entity->frameTexture = (Rectangle){0, 24, 16, 24};
+    
+    player->entity->destFrame = (Rectangle){16 * 3, 16 * 3, 16 * SCALING_FACTOR, 24 * SCALING_FACTOR};
 
-        player->entity->hitBox.area = (Rectangle){16 * 3, 16 * 3, 16 * SCALING_FACTOR * 0.9, 24 * SCALING_FACTOR * 0.5};
-        player->entity->hitBox.color = LIME;
-        player->entity->hitBox.owner = player->entity->id;
+    player->entity->hitBox.area = (Rectangle){16 * 3, 16 * 3, 16 * SCALING_FACTOR * 0.9, 24 * SCALING_FACTOR * 0.5};
+    player->entity->hitBox.color = LIME;
+    player->entity->hitBox.owner = player->entity->id;
 
-        player->entity->hitBox.canBeBlocked = true;
-        player->entity->hitBox.canPush = true;
-        player->entity->hitBox.canCollect = true;
-        player->entity->hitBox.canBeDestroyed = true;
-        player->entity->hitBox.canBeTeleported = true;
+    player->entity->hitBox.canBeBlocked = true;
+    player->entity->hitBox.canPush = true;
+    player->entity->hitBox.canCollect = true;
+    player->entity->hitBox.canBeDestroyed = true;
+    player->entity->hitBox.canBeTeleported = true;
 
-        player->entity->Update = Update;  
-        player->entity->Animate = Animate;
-        player->entity->Free = Free;
-        player->entity->SetDestination = SetDestination;
+    player->entity->Update = Update;  
+    player->entity->Animate = Animate;
+    player->entity->SetDestination = SetDestination;
 
-        PLAYER_ID = player->entity->id;
-        initialized = true;
-    }
+    PLAYER_ID = player->entity->id;
 
     return player;
 }

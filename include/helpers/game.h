@@ -5,6 +5,11 @@
 #define SCREEN_WIDTH 960
 #define SCREEN_HEIGHT 480
 extern int TIMER;
+extern bool GAME_OVER;
+extern bool STAGE_CLEAR;
+extern int NBR_OF_KEYS;
+extern int COLLECTED_KEYS;
+
 
 /************************
  * Entities management

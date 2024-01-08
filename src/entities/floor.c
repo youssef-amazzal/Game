@@ -12,26 +12,20 @@ static FLOORS IndexToType(int index);
 static FLOORS_INDEX TypeToIndex(FLOORS type);
 
 void InitFloors() {
-    static bool initialized = false;
-    if (!initialized)
+    for (int i = 0; i < FLOORS_COUNT; i++)
     {
-        for (int i = 0; i < FLOORS_COUNT; i++)
-        {
-            Floor *floor = &SingletonRecord[i];
-            floor->type = IndexToType(i);
+        Floor *floor = &SingletonRecord[i];
+        floor->type = IndexToType(i);
 
-            floor->entity = CreateEntity();
-            floor->entity->child = &SingletonRecord[i];
+        floor->entity = CreateEntity();
+        floor->entity->child = &SingletonRecord[i];
 
-            floor->entity->spriteSheet = floorSpriteSheet; // todo: i should change this if there is more floor types
-            floor->entity->frameTexture = (Rectangle){TILE_SIZE * (floor->type % F_TILES_PER_ROW), TILE_SIZE * (floor->type / F_TILES_PER_ROW), TILE_SIZE, TILE_SIZE};
+        floor->entity->spriteSheet = floorSpriteSheet; // todo: i should change this if there is more floor types
+        floor->entity->frameTexture = (Rectangle){TILE_SIZE * (floor->type % F_TILES_PER_ROW), TILE_SIZE * (floor->type / F_TILES_PER_ROW), TILE_SIZE, TILE_SIZE};
 
-            floor->entity->zIndex = -1;
+        floor->entity->zIndex = -1;
 
-            floor->entity->Render = render;
-            floor->entity->Free = Free;
-        }
-        initialized = true;
+        floor->entity->Render = render;
     }
 }
 
@@ -71,7 +65,6 @@ static void Free(Entity *floorEnt)
 {
     int id = floorEnt->id;
     Floor *floor = (Floor *)floorEnt->child;
-
     free(floorEnt);
     free(floor);
 

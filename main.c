@@ -9,14 +9,13 @@
 #include "ball.h"
 
 void initGame();
-void startGame();
 void exitGame();
 
 int main()
 {
     initGame();
 
-    startGame();
+    SartGameCycle();
 
     exitGame();
     
@@ -30,25 +29,9 @@ void initGame() {
     LoadTextures();
     LoadLevel(1);
 
-    InitFloors();
-    InitWalls();
-    InitDecors();
-    InitBalls();
-    Player *player = GetSingletonPlayer(); //initialize player
 }
 
-void startGame() {
-    while (!WindowShouldClose())
-    {
-        BeginDrawing();
-            ClearBackground(BLACK);
-            SartGameCycle();
-        EndDrawing();
-    }
-}
-
-void exitGame() {
-    StopGameCycle();
+void exitGame() {    
     UnloadCurrentLevel();
     UnloadTextures();
     CloseWindow();

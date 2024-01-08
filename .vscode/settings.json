@@ -71,7 +71,8 @@
         "wall.h": "c",
         "decor.h": "c",
         "floor.h": "c",
-        "game.h": "c"
+        "game.h": "c",
+        "ball.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "hidefiles.configurationType": "local",

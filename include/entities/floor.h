@@ -13,7 +13,15 @@ typedef enum FLOORS_INDEX {
 } FLOORS_INDEX;
 
 static const TextureData FLOORS_DATA[] = {
-    {F_NORMAL, {0, 0, TILE_SIZE * SCALING_FACTOR, TILE_SIZE * SCALING_FACTOR}}
+    {
+        .tileTypeId = F_NORMAL, 
+        .hitBox = {
+            0, 
+            0, 
+            TILE_SIZE * SCALING_FACTOR, 
+            TILE_SIZE * SCALING_FACTOR
+        },
+    }
 };
 
 typedef struct Floor {

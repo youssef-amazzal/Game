@@ -1,5 +1,6 @@
 #include "entity.h"
 #include "assets.h"
+#include "game.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -20,6 +21,8 @@ static void SetDestination(Entity *e, float x, float y);
 static void PushReaction(Entity *e1, Entity *e2);
 static void BlockReaction(Entity *e1, Entity *e2);
 static void BounceReaction(Entity *e1, Entity *e2);
+static void DestroyReaction(Entity *e1, Entity *e2);
+static void CollectReaction(Entity *e1, Entity *e2);
 
 Entity *CreateEntity() 
 {
@@ -95,6 +98,7 @@ static void Animate(Entity *e){}
 
 static void Render(Entity *e)
 {
+    if (e->active == false) return;
     // Render the entity texture
     DrawTexturePro(*(e->spriteSheet), e->frameTexture, e->destFrame, e->origin, 0, WHITE);
     
@@ -161,12 +165,14 @@ static void React(Entity *e) {
         if (i == e->id) continue;
         other = ENTITY_RECORD[i];
 
-        if (this == NULL || other == NULL) continue;
+        if (this == NULL || other == NULL || this->active == false || other->active == false) continue;
         if (!CheckCollision(this->id, other->id)) continue;
         
         PushReaction(this, other);
         BlockReaction(this, other);
         BounceReaction(this, other);
+        DestroyReaction(this, other);
+        CollectReaction(this, other);
     }
 }
 
@@ -286,6 +292,36 @@ static void BounceReaction(Entity *e1, Entity *e2) {
 
     bounced->angle += 10;
 }
+
+static void DestroyReaction(Entity *e1, Entity *e2) {
+    Entity *destroyer, *destroyed;
+
+    if (e1->hitBox.canDestroy && e2->hitBox.canBeDestroyed) {
+        destroyer = e1;
+        destroyed = e2;
+    } else if (e2->hitBox.canDestroy && e1->hitBox.canBeDestroyed) {
+        destroyer = e2;
+        destroyed = e1;
+    } else return;
+
+    if (destroyed->id == PLAYER_ID) GAME_OVER = true;
+}
+
+static void CollectReaction(Entity *e1, Entity *e2) {
+    Entity *collector, *collected;
+
+    if (e1->hitBox.canCollect && e2->hitBox.canBeCollected) {
+        collector = e1;
+        collected = e2;
+    } else if (e2->hitBox.canCollect && e1->hitBox.canBeCollected) {
+        collector = e2;
+        collected = e1;
+    } else return;
+
+    COLLECTED_KEYS++;
+    collected->active = false;
+}
+
 /************************
  * Public Funcs
  ************************/

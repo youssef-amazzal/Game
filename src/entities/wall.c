@@ -22,9 +22,9 @@ static const TextureData TEXTURES_DATA[] = {
         .tileTypeId = W_CORNER_TOP_LEFT,
         .hitBox = {
             .area = {
-                0,
+                TILE_SIZE / 2  - TILE_SIZE * 0.4,
                 TILE_SIZE / 2 - TILE_SIZE / 4,
-                TILE_SIZE,
+                TILE_SIZE * 0.8,
                 TILE_SIZE / 2.5,
             },
             .color = BLUE,
@@ -36,9 +36,9 @@ static const TextureData TEXTURES_DATA[] = {
         .tileTypeId = W_CORNER_TOP_RIGHT,
         .hitBox = {
             .area = {
-                0,
+                TILE_SIZE / 2  - TILE_SIZE * 0.4,
                 TILE_SIZE / 2 - TILE_SIZE / 4,
-                TILE_SIZE,
+                TILE_SIZE * 0.8,
                 TILE_SIZE / 2.5,
             },
             .color = BLUE,
@@ -125,9 +125,9 @@ static const TextureData TEXTURES_DATA[] = {
         .tileTypeId = W_INTERIOR,
         .hitBox = {
             .area = {
-                0,
+                TILE_SIZE / 2  - TILE_SIZE * 0.4,
                 TILE_SIZE / 2 - TILE_SIZE / 4,
-                TILE_SIZE,
+                TILE_SIZE * 0.8,
                 TILE_SIZE / 2.5,
             },
             .color = BLUE,
@@ -139,9 +139,9 @@ static const TextureData TEXTURES_DATA[] = {
         .tileTypeId = W_EXTERIOR,
         .hitBox = {
             .area = {
-                0,
+                TILE_SIZE / 2  - TILE_SIZE * 0.4,
                 TILE_SIZE / 2 - TILE_SIZE / 4,
-                TILE_SIZE,
+                TILE_SIZE * 0.8,
                 TILE_SIZE / 2.5,
             },
             .color = BLUE,
@@ -187,37 +187,31 @@ static WALLS IndexToType(int index);
 static WALLS_INDEX TypeToIndex(WALLS type);
 
 void InitWalls() {
-    static bool initialized = false;
-    if (!initialized)
-    {
-        int width = CURRENT_LEVEL->width;
-        int height = CURRENT_LEVEL->height;
+    int width = CURRENT_LEVEL->width;
+    int height = CURRENT_LEVEL->height;
 
-        int **layerArray = CURRENT_LEVEL->layers[LAYER_WALLS];
+    int **layerArray = CURRENT_LEVEL->layers[LAYER_WALLS];
 
-        for (int row = 0; row < height; row++) {
-            for (int col = 0; col < width; col++)
-            {
-                if (layerArray[row][col] != -1) {
-                    Wall *wall = GetWall(layerArray[row][col]);
-                    TextureData textureData = TEXTURES_DATA[TypeToIndex(layerArray[row][col])];
-                    
-                    wall->entity->hitBox.area.width = textureData.hitBox.area.width * SCALING_FACTOR;
-                    wall->entity->hitBox.area.height = textureData.hitBox.area.height * SCALING_FACTOR;
-                    wall->entity->hitBox.color = textureData.hitBox.color;
+    for (int row = 0; row < height; row++) {
+        for (int col = 0; col < width; col++)
+        {
+            if (layerArray[row][col] != -1) {
+                Wall *wall = GetWall(layerArray[row][col]);
+                TextureData textureData = TEXTURES_DATA[TypeToIndex(layerArray[row][col])];
+                
+                wall->entity->hitBox.area.width = textureData.hitBox.area.width * SCALING_FACTOR;
+                wall->entity->hitBox.area.height = textureData.hitBox.area.height * SCALING_FACTOR;
+                wall->entity->hitBox.color = textureData.hitBox.color;
 
-                    wall->entity->hitBox.canBlock = textureData.hitBox.canBlock;
-                    wall->entity->hitBox.canBounce = textureData.hitBox.canBounce;
+                wall->entity->hitBox.canBlock = textureData.hitBox.canBlock;
+                wall->entity->hitBox.canBounce = textureData.hitBox.canBounce;
 
-                    
-                    wall->entity->zIndex = textureData.zIndex;
+                
+                wall->entity->zIndex = textureData.zIndex;
 
-                    SetDestination(wall->entity, col * TILE_SIZE * SCALING_FACTOR, row * TILE_SIZE * SCALING_FACTOR);
-                }
+                SetDestination(wall->entity, col * TILE_SIZE * SCALING_FACTOR, row * TILE_SIZE * SCALING_FACTOR);
             }
         }
-
-        initialized = true;
     }
 }
 
@@ -232,7 +226,6 @@ static Wall *GetWall(WALLS type)
     wall->entity->spriteSheet = wallSpriteSheet;
     wall->entity->frameTexture = (Rectangle){TILE_SIZE * (wall->type % W_TILES_PER_ROW), TILE_SIZE * (wall->type / W_TILES_PER_ROW), TILE_SIZE, TILE_SIZE};
 
-    wall->entity->Free = Free;
     wall->entity->SetDestination = SetDestination;
 
     return wall;

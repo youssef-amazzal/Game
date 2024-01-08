@@ -9,6 +9,7 @@ Texture2D *floorSpriteSheet;
 Texture2D *wallSpriteSheet;
 Texture2D *decorSpriteSheet;
 Texture2D *ballSpriteSheet;
+Texture2D *keySpriteSheet;
 
 Level *CURRENT_LEVEL = NULL;
 Level LEVELS[LEVELS_COUNT] = {
@@ -40,6 +41,9 @@ void LoadTextures() {
 
     ballSpriteSheet = malloc(sizeof(Texture2D));
     *ballSpriteSheet = LoadTexture(BALL_SPRITESHEET_PATH);
+
+    keySpriteSheet = malloc(sizeof(Texture2D));
+    *keySpriteSheet = LoadTexture(KEY_SPRITESHEET_PATH);
 }
 
 void UnloadTextures() {
@@ -48,12 +52,14 @@ void UnloadTextures() {
     UnloadTexture(*wallSpriteSheet);
     UnloadTexture(*decorSpriteSheet);
     UnloadTexture(*ballSpriteSheet);
+    UnloadTexture(*keySpriteSheet);
 
     free(playerSpriteSheet);
     free(floorSpriteSheet);
     free(wallSpriteSheet);
     free(decorSpriteSheet);
     free(ballSpriteSheet);
+    free(keySpriteSheet);
 }
 
 // level funcs
@@ -110,3 +116,23 @@ void UnloadCurrentLevel() {
     }
     CURRENT_LEVEL = NULL;
 }
+
+Texture2D *GetKeySpriteSheet() {
+    return keySpriteSheet;
+}
+Texture2D *GetBallSpriteSheet() {
+    return ballSpriteSheet;
+}
+Texture2D *GetWallSpriteSheet() {
+    return wallSpriteSheet;
+}
+Texture2D *GetFloorSpriteSheet() {
+    return floorSpriteSheet;
+}
+Texture2D *GetDecorSpriteSheet() {
+    return decorSpriteSheet;
+}
+Texture2D *GetPlayerSpriteSheet() {
+    return playerSpriteSheet;
+}
+

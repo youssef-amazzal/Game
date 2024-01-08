@@ -28,6 +28,8 @@ const char *ConstructPath(const char *str1, const char *str2);
 #define D_TILES_PER_ROW 9
 #define BALL_SPRITESHEET_PATH   TEXTURES_DIR "/" "ball.png"
 #define B_TILES_PER_ROW 3
+#define KEY_SPRITESHEET_PATH    TEXTURES_DIR "/" "key.png"
+#define K_TILES_PER_ROW 8
 
 #define SCALING_FACTOR 3
 #define TILE_SIZE 16
@@ -37,11 +39,22 @@ extern Texture2D *floorSpriteSheet;
 extern Texture2D *wallSpriteSheet;
 extern Texture2D *decorSpriteSheet;
 extern Texture2D *ballSpriteSheet;
+extern Texture2D *keySpriteSheet;
 
 void LoadTextures();
 void UnloadTextures();
 
+Texture2D *GetKeySpriteSheet();
+Texture2D *GetBallSpriteSheet();
+Texture2D *GetWallSpriteSheet();
+Texture2D *GetFloorSpriteSheet();
+Texture2D *GetDecorSpriteSheet();
+Texture2D *GetPlayerSpriteSheet();
+
+
 typedef struct TextureData {
+    Texture2D *(*spriteSheet)(void);
+    int tilesPerRow;
     int tileTypeId; 
     HitBox hitBox;
     int zIndex;

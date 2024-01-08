@@ -1,50 +1,114 @@
 #include "game.h"
 #include "raylib.h"
-#include "entity.h"
 #include "math.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
-int TIMER = 30 * FRAME_RATE;
+#include "player.h"
+#include "entity.h"
+#include "decor.h"
+#include "floor.h"
+#include "wall.h"
+#include "ball.h"
+
+int TIMER = 60 * FRAME_RATE;
 bool GAME_OVER = false;
+bool STAGE_CLEAR = false;
+int NBR_OF_KEYS = 0;
+int COLLECTED_KEYS = 0;
+
+bool START_GAME = false;
+bool INIT_GAME = false;
 
 /************************
  * Game Cycle Funcs
  ************************/
 void SartGameCycle() {
-
-    if (GAME_OVER) {
-        DrawText("GAME OVER", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 50, 50, WHITE);
-        return;
-    }
-
-    for (int i = 0; i < LAST_ID; i++)
+    while (!WindowShouldClose())
     {
-        if (ENTITY_RECORD[i] != NULL)
-        {
-            ENTITY_RECORD[i]->Update(ENTITY_RECORD[i]);
-            ENTITY_RECORD[i]->Animate(ENTITY_RECORD[i]);
-            
+        if (!INIT_GAME) {
+            InitFloors();
+            InitWalls();
+            InitDecors();
+            InitBalls();
+            Player *player = GetSingletonPlayer();
+            INIT_GAME = true;
         }
+
+        
+        while (!WindowShouldClose() && !GAME_OVER && !STAGE_CLEAR)
+        {
+            BeginDrawing();
+        
+        
+            ClearBackground(BLACK);
+
+            for (int i = 0; i < LAST_ID; i++)
+            {
+                if (ENTITY_RECORD[i] != NULL)
+                {
+                    ENTITY_RECORD[i]->Update(ENTITY_RECORD[i]);
+                    ENTITY_RECORD[i]->Animate(ENTITY_RECORD[i]);
+                    
+                }
+            }
+            
+            SortRenderOrder();
+            // WORKAROUND: player colision should be handled first cause he gives his velocity 
+            // to other entities but the entities with lower id reset it to 0 before being able to use it
+            ENTITY_RECORD[PLAYER_ID]->React(ENTITY_RECORD[PLAYER_ID]);  
+
+            for (int i = 0; i < LAST_ID; i++)
+            {
+                if (ENTITY_RECORD[i] != NULL)
+                {
+                    ENTITY_RECORD[i]->React(ENTITY_RECORD[i]);
+                    ENTITY_RECORD[i]->Render(ENTITY_RECORD[i]);
+                }
+            }
+
+            DrawText(TextFormat("TIMER: %d", TIMER / FRAME_RATE), 10, 10, 20, WHITE);
+            TIMER -= 1;
+            if (TIMER <= 0) GAME_OVER = true;
+
+            if (COLLECTED_KEYS == NBR_OF_KEYS) STAGE_CLEAR = true;
+            EndDrawing();
+        }
+
+        StopGameCycle();
+
+        BeginDrawing();
+        if (STAGE_CLEAR)
+        {
+            DrawText("STAGE CLEAR", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 50, 50, WHITE);
+            DrawText("Press Enter to continue", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, 20, WHITE);
+            if (IsKeyPressed(KEY_ENTER)) {
+                STAGE_CLEAR = false;
+                TIMER = 60 * FRAME_RATE;
+                COLLECTED_KEYS = 0;
+                NBR_OF_KEYS = 0;
+                INIT_GAME = false;
+            }
+        }
+        
+
+        if (GAME_OVER) {
+            DrawText("GAME OVER", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 50, 50, WHITE);
+            DrawText("Press Enter to restart", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, 20, WHITE);
+            if (IsKeyPressed(KEY_ENTER)) {
+                GAME_OVER = false;
+                TIMER = 60 * FRAME_RATE;
+                COLLECTED_KEYS = 0;
+                NBR_OF_KEYS = 0;
+                INIT_GAME = false;
+            }
+        }
+
+
+        EndDrawing();
     }
     
-    SortRenderOrder();
-    // WORKAROUND: player colision should be handled first cause he gives his velocity 
-    // to other entities but the entities with lower id reset it to 0 before being able to use it
-    ENTITY_RECORD[PLAYER_ID]->React(ENTITY_RECORD[PLAYER_ID]);  
-
-    for (int i = 0; i < LAST_ID; i++)
-    {
-        if (ENTITY_RECORD[i] != NULL)
-        {
-            ENTITY_RECORD[i]->React(ENTITY_RECORD[i]);
-            ENTITY_RECORD[i]->Render(ENTITY_RECORD[i]);
-        }
-    }
-
-    DrawText(TextFormat("TIMER: %d", TIMER / FRAME_RATE), 10, 10, 20, WHITE);
-    TIMER -= 1;
-    if (TIMER <= 0) GAME_OVER = true;
 }
 
 void StopGameCycle()
@@ -56,6 +120,7 @@ void StopGameCycle()
             ENTITY_RECORD[i]->Free(ENTITY_RECORD[i]);
         }
     }
+    LAST_ID = 0;
 }
 
 /************************
